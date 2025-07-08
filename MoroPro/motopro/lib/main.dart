@@ -3,6 +3,7 @@ import 'package:motopro/pages/boasvindas_page.dart';
 import 'package:motopro/pages/login_page.dart';
 import 'package:motopro/pages/home_page.dart'; // você pode criar uma página básica por enquanto
 import 'package:intl/date_symbol_data_local.dart'; // ✅ import obrigatório
+import 'package:motopro/pages/pre_cadastro_page.dart'; // ✅ import da nova página
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
         '/login': (_) => const LoginPage(),
         '/home': (_) =>
             const HomePage(), // você pode criar uma tela placeholder
+
+        // ✅ Adicione isto:
+        '/pre-cadastro': (_) => const PreCadastroPage(),
       },
     );
   }
