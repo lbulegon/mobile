@@ -33,13 +33,18 @@ Future<List<Vaga>> fetchMinhasVagas() async {
 Future<void> candidatarVaga(Vaga vaga, int motoboyId) async {
   final dataFormatada = formatarDataISO(vaga.dataISO); // usa a função segura
 
-  print('[DEBUG] vaga.dia: ${vaga.dia}');
-  print('[DEBUG] vaga.dataISO: ${vaga.dataISO}');
-  print('[DEBUG] motoboyIDdataFormatada: $motoboyId');
-
   if (dataFormatada.isEmpty) {
     throw Exception('Data da vaga inválida: ${vaga.dia}');
   }
+
+  print('[DEBUG] Enviando dados para candidatura:');
+  print(jsonEncode({
+    "motoboy": motoboyId,
+    "estabelecimento": vaga.estabelecimentoId,
+    "data": dataFormatada,
+    "hora_inicio": "${vaga.horaInicio}:00",
+    "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
+  }));
 
   final response = await ApiClient.post(
     '/motoboy-vaga/candidatar/',

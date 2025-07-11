@@ -40,6 +40,9 @@ Future<bool> login(String email, String password) async {
           print('[DEBUG] Perfil retornado: $perfil');
           if (motoboyId != null) {
             await LocalStorage.salvarMotoboyId(motoboyId);
+            final idSalvo = await LocalStorage.getMotoboyId();
+            print(
+                '[DEBUG] ID salvo e recuperado do SharedPreferences: $idSalvo');
           }
         } else {
           print(
