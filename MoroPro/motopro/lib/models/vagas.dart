@@ -6,7 +6,7 @@ class Vaga {
   final String local;
   final String dia; // Exibição: "Terça, 08/07/2025"
   final String hora; // Exibição: "10:30 às 18:00"
-  final String valor; // Ex: "Vaga fixa"
+
   final String observacao;
 
   final int estabelecimentoId;
@@ -20,7 +20,6 @@ class Vaga {
     required this.local,
     required this.dia,
     required this.hora,
-    required this.valor,
     required this.observacao,
     required this.estabelecimentoId,
     required this.horaInicio,
@@ -40,11 +39,9 @@ class Vaga {
     try {
       DateTime parsedDate;
 
-      // Primeira tentativa com parseStrict
       try {
         parsedDate = DateFormat('yyyy-MM-dd').parseStrict(rawDate);
       } catch (_) {
-        // Fallback com DateTime.tryParse
         parsedDate = DateTime.tryParse(rawDate) ??
             (throw FormatException('Formato inválido: $rawDate'));
       }
@@ -55,9 +52,6 @@ class Vaga {
             RegExp(r'^\w'),
             (m) => m.group(0)!.toUpperCase(),
           );
-
-      print(
-          '[SUCESSO] Parse ok: $parsedDate -> $diaFormatado / $dataIsoFormatada');
     } catch (e) {
       print('[ERRO] Falha ao converter data: $rawDate -> $e');
       diaFormatado = rawDate;
@@ -74,9 +68,6 @@ class Vaga {
       local: 'Local não informado',
       dia: diaFormatado,
       hora: horaFormatada,
-      valor: json['tipo_vaga'] != null
-          ? 'Vaga ${json['tipo_vaga']}'
-          : 'Tipo indefinido',
       observacao: '',
       estabelecimentoId: json['estabelecimento_id'] ?? 0,
       horaInicio: inicio,

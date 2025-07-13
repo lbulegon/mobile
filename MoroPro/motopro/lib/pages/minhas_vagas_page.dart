@@ -112,7 +112,7 @@ class VagaCardMinhas extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Local: ${vaga.local}\nDia: $formattedDate\nHorário: ${vaga.hora}\nTipo: ${vaga.valor}\nObservação: ${vaga.observacao}',
+              'Local: ${vaga.local}\nDia: $formattedDate\nHorário: ${vaga.hora}\nObservação: ${vaga.observacao}',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
