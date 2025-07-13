@@ -1,3 +1,5 @@
+// lib/services/network/auth_interceptor.dart
+// lib/services/network/auth_interceptor.dart
 import 'package:dio/dio.dart';
 import 'package:motopro/utils/app_config.dart';
 import 'package:motopro/services/session_manager.dart';
@@ -5,7 +7,9 @@ import 'package:motopro/services/session_manager.dart';
 class AuthInterceptor extends Interceptor {
   @override
   void onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final token = await SessionManager.getAccessToken();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -14,19 +18,23 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401 &&
-        !err.requestOptions.path.contains('/token/refresh')) {
-      final success = await _refreshToken();
+  void onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final isUnauthorized = err.response?.statusCode == 401;
+    final isNotRefresh = !err.requestOptions.path.contains('/token/refresh');
 
+    if (isUnauthorized && isNotRefresh) {
+      final success = await _refreshToken();
       if (success) {
-        final newAccess = await SessionManager.getAccessToken();
-        final cloned = await _retry(err.requestOptions, newAccess!);
-        return handler.resolve(cloned);
+        final newToken = await SessionManager.getAccessToken();
+        final retryResponse = await _retry(err.requestOptions, newToken!);
+        return handler.resolve(retryResponse);
       }
     }
 
-    return handler.next(err);
+    handler.next(err);
   }
 
   Future<bool> _refreshToken() async {
@@ -36,7 +44,7 @@ class AuthInterceptor extends Interceptor {
     try {
       final dio = Dio();
       final response = await dio.post(
-        '${AppConfig.apiUrl}/api/v1/token/refresh/',
+        AppConfig.refreshToken,
         data: {'refresh': refresh},
         options: Options(headers: {
           'Content-Type': 'application/json',
@@ -48,13 +56,14 @@ class AuthInterceptor extends Interceptor {
         return true;
       }
     } catch (e) {
-      print('Erro ao renovar token: $e');
+      print('❌ Erro ao renovar token: $e');
     }
 
     return false;
   }
 
-  Future<Response> _retry(RequestOptions requestOptions, String token) {
+  Future<Response<dynamic>> _retry(
+      RequestOptions requestOptions, String token) {
     final options = Options(
       method: requestOptions.method,
       headers: {
@@ -65,7 +74,7 @@ class AuthInterceptor extends Interceptor {
 
     final dio = Dio();
     return dio.request(
-      '${AppConfig.apiUrl}${requestOptions.path}',
+      requestOptions.path,
       data: requestOptions.data,
       queryParameters: requestOptions.queryParameters,
       options: options,

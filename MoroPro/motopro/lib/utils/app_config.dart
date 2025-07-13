@@ -1,14 +1,17 @@
 class AppConfig {
-  static const String baseUrl =
-      'https://motopro-development.up.railway.app/api/v1';
+  static const String baseUrl = 'https://motopro-development.up.railway.app';
+  static const String apiPrefix = '/api/v1';
+  static const String apiUrl = '$baseUrl$apiPrefix';
 
-  static const String apiUrl = baseUrl;
+  static const login = '$apiUrl/token/';
 
-  // Endpoints JWT
-  static const String loginUrl = '$baseUrl/token/';
-  static const String refreshUrl = '$baseUrl/token/refresh/';
+  static const String userProfile = '$apiUrl/users/profile/';
 
-  // Chaves para SharedPreferences
-  static const String tokenKey = 'access';
-  static const String refreshTokenKey = 'refresh';
+  static const String refreshToken = '$apiUrl/token/refresh/';
+  static const String tokenVerify = '$apiUrl/token/verify/';
+
+  // Outros endpoints
+  static const String preCadastro = '$apiUrl/motoboy/pre-cadastro/';
+  static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
+  static const String candidatar = '$apiUrl/vagas/candidatar/';
 }

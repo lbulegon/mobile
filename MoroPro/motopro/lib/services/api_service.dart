@@ -1,44 +1,34 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../utils/app_config.dart';
-import 'local_storage.dart';
+import 'package:dio/dio.dart';
+import 'dio_client.dart';
+import 'package:motopro/utils/app_config.dart';
 
-class ApiClient {
-  static Future<http.Response> post(
-      String endpoint, Map<String, dynamic> body) async {
-    final token = await LocalStorage.getToken(); // opcional
-
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}$endpoint'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(body),
-    );
-
-    _handleErrors(response);
-    return response;
+class ApiService {
+  static Future<Response> getPerfil() async {
+    return await DioClient.dio.get('/motoboy/me/');
   }
 
-  static Future<http.Response> get(String endpoint) async {
-    final token = await LocalStorage.getToken(); // opcional
-
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}$endpoint'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
-
-    _handleErrors(response);
-    return response;
+  static Future<Response> getVagasDisponiveis() async {
+    return await DioClient.dio.get(AppConfig.vagasDisponiveis);
   }
 
-  static void _handleErrors(http.Response response) {
-    if (response.statusCode >= 400) {
-      throw Exception('Erro na API: ${response.statusCode} - ${response.body}');
-    }
+  static Future<Response> candidatar(String motoboyId, String vagaId) async {
+    return await DioClient.dio.post(
+      AppConfig.candidatar,
+      data: {'motoboy_id': motoboyId, 'vaga_id': vagaId},
+    );
+  }
+
+  static Future<Response> login(String email, String password) async {
+    return await DioClient.dio.post(
+      AppConfig.login,
+      data: {'email': email, 'password': password},
+    );
+  }
+
+  static Future<Response> preCadastro(Map<String, dynamic> dados) async {
+    return await DioClient.dio.post(
+      AppConfig.preCadastro,
+      data: dados,
+    );
   }
 }

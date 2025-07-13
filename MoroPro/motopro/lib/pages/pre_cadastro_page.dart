@@ -1,7 +1,9 @@
+// lib/pages/pre_cadastro_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:motopro/services/pre_cadastro_service.dart';
+import 'package:motopro/utils/app_config.dart';
 
 class PreCadastroPage extends StatefulWidget {
   const PreCadastroPage({super.key});
@@ -25,14 +27,13 @@ class _PreCadastroPageState extends State<PreCadastroPage> {
 
     setState(() => isLoading = true);
 
-    const url =
-        'https://motopro-development.up.railway.app/api/motoboy/pre-cadastro/';
+    final url = AppConfig.preCadastro;
 
     final response = await http.post(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'nome': _nomeController.text,
+        'nome_completo': _nomeController.text,
         'cpf': _cpfController.text,
         'email': _emailController.text,
         'telefone': _telefoneController.text,

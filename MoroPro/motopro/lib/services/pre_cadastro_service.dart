@@ -1,5 +1,7 @@
+// lib/services/pre_cadastro_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:motopro/utils/app_config.dart'; // importa o AppConfig
 
 class PreCadastroResponse {
   final bool success;
@@ -15,8 +17,7 @@ Future<PreCadastroResponse> preCadastroMotoboy({
   required String telefone,
   required String password,
 }) async {
-  const String url =
-      'https://motopro-development.up.railway.app/api/motoboy/pre-cadastro/';
+  final String url = AppConfig.preCadastro;
 
   try {
     final response = await http.post(

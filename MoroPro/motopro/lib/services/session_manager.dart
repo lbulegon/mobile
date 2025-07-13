@@ -12,11 +12,20 @@ class SessionManager {
     await prefs.setString(_refreshTokenKey, refreshToken);
   }
 
+  /// Salva apenas o token de acesso (para refresh automático)
+  static Future<void> saveAccessToken(String accessToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, accessToken);
+  }
+
   /// Recupera o token de acesso
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
+
+  /// Alias para manter compatibilidade com AuthInterceptor
+  static Future<String?> getAccessToken() => getToken();
 
   /// Recupera o refresh token
   static Future<String?> getRefreshToken() async {
