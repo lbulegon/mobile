@@ -16,6 +16,7 @@ Future<PreCadastroResponse> preCadastroMotoboy({
   required String email,
   required String telefone,
   required String password,
+  required String confirmPassword,
 }) async {
   final String url = AppConfig.preCadastro;
 
@@ -28,8 +29,9 @@ Future<PreCadastroResponse> preCadastroMotoboy({
         'cpf': cpf,
         'email': email,
         'telefone': telefone,
-        'password': password,
-        'is_motoboy': true, // Adicionado aqui
+        'password1': password,
+        'password2': confirmPassword,
+        'is_motoboy': true,
       }),
     );
 

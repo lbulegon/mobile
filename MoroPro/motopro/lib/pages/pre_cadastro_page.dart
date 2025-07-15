@@ -1,4 +1,3 @@
-// lib/pages/pre_cadastro_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -19,40 +18,32 @@ class _PreCadastroPageState extends State<PreCadastroPage> {
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
 
   bool isLoading = false;
 
-  Future<void> _preCadastro() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
 
-    final url = AppConfig.preCadastro;
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'nome_completo': _nomeController.text,
-        'cpf': _cpfController.text,
-        'email': _emailController.text,
-        'telefone': _telefoneController.text,
-        'password': _passwordController.text,
-      }),
+    final response = await preCadastroMotoboy(
+      nome: _nomeController.text,
+      cpf: _cpfController.text,
+      email: _emailController.text,
+      telefone: _telefoneController.text,
+      password: _passwordController.text,
+      confirmPassword: _confirmarSenhaController.text,
     );
 
     setState(() => isLoading = false);
 
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pré-cadastro realizado com sucesso!')),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response.message)),
+    );
+
+    if (response.success) {
       Navigator.pop(context);
-    } else {
-      final resp = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${resp['errors'] ?? 'Tente novamente'}')),
-      );
     }
   }
 
@@ -93,37 +84,27 @@ class _PreCadastroPageState extends State<PreCadastroPage> {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Senha'),
                 obscureText: true,
+                decoration: const InputDecoration(labelText: 'Senha'),
                 validator: (value) => value == null || value.length < 6
                     ? 'Senha deve ter no mínimo 6 caracteres'
+                    : null,
+              ),
+              TextFormField(
+                controller: _confirmarSenhaController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Confirmar Senha'),
+                validator: (value) => value != _passwordController.text
+                    ? 'As senhas não coincidem'
                     : null,
               ),
               const SizedBox(height: 20),
               isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          final response = await preCadastroMotoboy(
-                            nome: _nomeController.text,
-                            cpf: _cpfController.text,
-                            email: _emailController.text,
-                            telefone: _telefoneController.text,
-                            password: _passwordController.text,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(response.message)),
-                          );
-
-                          if (response.success) {
-                            Navigator.pop(context);
-                          }
-                        }
-                      },
+                      onPressed: _submit,
                       child: const Text('Realizar Pré-Cadastro'),
-                    )
+                    ),
             ],
           ),
         ),
