@@ -4,15 +4,14 @@ class Vaga {
   final int id;
   final String empresa;
   final String local;
-  final String dia; // Exibição: "Terça, 08/07/2025"
-  final String hora; // Exibição: "10:30 às 18:00"
-
+  final String dia;
+  final String hora;
   final String observacao;
-
   final int estabelecimentoId;
   final String horaInicio;
   final String horaFim;
-  final String _dataISO; // Ex: "2025-07-08"
+  final String _dataISO;
+  final int quantidadeDisponivel;
 
   Vaga({
     required this.id,
@@ -25,12 +24,11 @@ class Vaga {
     required this.horaInicio,
     required this.horaFim,
     required String dataISO,
+    required this.quantidadeDisponivel,
   }) : _dataISO = dataISO;
 
-  /// Getter público para a data no formato ISO (yyyy-MM-dd)
   String get dataISO => _dataISO;
 
-  /// Factory que cria a vaga a partir do JSON retornado pela API
   factory Vaga.fromJson(Map<String, dynamic> json) {
     final rawDate = (json['data_da_vaga'] ?? '').toString().trim();
     String diaFormatado = '';
@@ -38,7 +36,6 @@ class Vaga {
 
     try {
       DateTime parsedDate;
-
       try {
         parsedDate = DateFormat('yyyy-MM-dd').parseStrict(rawDate);
       } catch (_) {
@@ -53,7 +50,6 @@ class Vaga {
             (m) => m.group(0)!.toUpperCase(),
           );
     } catch (e) {
-      print('[ERRO] Falha ao converter data: $rawDate -> $e');
       diaFormatado = rawDate;
       dataIsoFormatada = '';
     }
@@ -73,6 +69,7 @@ class Vaga {
       horaInicio: inicio,
       horaFim: fim,
       dataISO: dataIsoFormatada,
+      quantidadeDisponivel: json['quantidade_vagas_disponiveis'] ?? 0,
     );
   }
 }

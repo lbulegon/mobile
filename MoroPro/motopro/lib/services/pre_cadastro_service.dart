@@ -29,6 +29,7 @@ Future<PreCadastroResponse> preCadastroMotoboy({
         'email': email,
         'telefone': telefone,
         'password': password,
+        'is_motoboy': true, // Adicionado aqui
       }),
     );
 
