@@ -49,11 +49,11 @@ Future<void> candidatarVaga(Vaga vaga, int motoboyId) async {
   final response = await ApiClient.post(
     '/motoboy-vaga/candidatar/',
     {
-      "motoboy": motoboyId,
+      "motoboy"        : motoboyId,
       "estabelecimento": vaga.estabelecimentoId,
-      "data": dataFormatada,
-      "hora_inicio": "${vaga.horaInicio}:00",
-      "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
+      "data"           : dataFormatada,
+      "hora_inicio"    : "${vaga.horaInicio}:00",
+      "hora_fim"       : "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
     },
   );
 

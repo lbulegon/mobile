@@ -4,15 +4,10 @@ import 'package:intl/intl.dart';
 /// para o formato ISO seguro "yyyy-MM-dd".
 /// Retorna string vazia se inválida.
 String formatarDataISO(dynamic rawDate) {
-  try {
-    if (rawDate is String) {
-      final parsed = DateTime.tryParse(rawDate);
-      if (parsed != null) {
-        return DateFormat('yyyy-MM-dd').format(parsed);
-      }
-    } else if (rawDate is DateTime) {
-      return DateFormat('yyyy-MM-dd').format(rawDate);
-    }
-  } catch (_) {}
+  if (rawDate is String && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(rawDate)) {
+    return rawDate;
+  }
   return '';
 }
+
+

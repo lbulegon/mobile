@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:motopro/services/pre_cadastro_service.dart';
-import 'package:motopro/utils/app_config.dart';
 
 class PreCadastroPage extends StatefulWidget {
   const PreCadastroPage({super.key});
