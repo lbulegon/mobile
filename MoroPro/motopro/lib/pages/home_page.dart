@@ -4,6 +4,10 @@ import 'package:motopro/pages/vagas_page.dart';
 import 'package:motopro/pages/perfil_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:provider/provider.dart';
+import 'package:motopro/providers/user_provider.dart';
+import 'package:motopro/services/session_manager.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -26,13 +30,18 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _sair() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.clear();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const BoasVindasPage()),
-    );
+  Future<void> logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    await SessionManager.clearTokens();
+    context.read<UserProvider>().clearUserData();
+
+   Navigator.pushNamedAndRemoveUntil(
+  context,
+  '/',
+  (_) => false,
+  arguments: {'logout': true},
+);
   }
 
   @override
@@ -90,8 +99,8 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.logout),
               title: const Text('Sair'),
               onTap: () async {
-                Navigator.pop(context);
-                await _sair();
+                Navigator.pop(context); // Fecha o drawer
+                await logout(context);
               },
             ),
           ],
@@ -111,8 +120,6 @@ class HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 📢 Banner de Propaganda
-          // 📢 Banner de Propaganda
           Container(
             width: double.infinity,
             height: 150,
@@ -120,16 +127,14 @@ class HomeContent extends StatelessWidget {
               color: Colors.deepPurpleAccent,
               borderRadius: BorderRadius.circular(12),
               image: const DecorationImage(
-                image:
-                    AssetImage('assets/banner.png'), // Substitua por seu asset
+                image: AssetImage('assets/banner.png'),
                 fit: BoxFit.cover,
               ),
             ),
             alignment: Alignment.center,
             child: const Text(
               'Porque quem acelera junto, entrega!',
-              textAlign:
-                  TextAlign.center, // 👈 Centraliza o texto dentro do box
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -138,10 +143,7 @@ class HomeContent extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // 💡 Sugestões para você
           const Text(
             'Sugestões para Você',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -161,8 +163,6 @@ class HomeContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
-          // 🛠️ Dicas Profissionais
           const Text(
             'Dicas Profissionais',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -171,8 +171,8 @@ class HomeContent extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.lightbulb),
-              title:
-                  const Text('Mantenha sua moto revisada para evitar atrasos'),
+              title: const Text(
+                  'Mantenha sua moto revisada para evitar atrasos'),
             ),
           ),
           Card(

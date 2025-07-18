@@ -1,6 +1,7 @@
 // lib/services/api_vagas.dart
 import 'dart:convert';
 import 'package:motopro/models/vagas.dart';
+import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/services/api_client.dart';
 import '../utils/date_utils.dart';
 
@@ -29,36 +30,41 @@ Future<List<Vaga>> fetchMinhasVagas() async {
 }
 
 /// ✅ Candidatar-se a uma vaga
-
 Future<void> candidatarVaga(Vaga vaga, int motoboyId) async {
-  final dataFormatada = formatarDataISO(vaga.dataISO); // usa a função segura
+  final motoboyId = await LocalStorage.getMotoboyId();
 
-  if (dataFormatada.isEmpty) {
-    throw Exception('Data da vaga inválida: ${vaga.dia}');
+  if (motoboyId == 0) {
+    throw Exception('Motoboy ID não encontrado. Faça login novamente.');
   }
 
-  print('[DEBUG] Enviando dados para candidatura:');
-  print(jsonEncode({
+  if (vaga.estabelecimentoId == 0) {
+    throw Exception('Estabelecimento ID inválido.');
+  }
+
+  final dataFormatada = formatarDataISO(vaga.dataISO);
+
+  print('[DEBUG] Enviando candidatura com:');
+  print({
     "motoboy": motoboyId,
     "estabelecimento": vaga.estabelecimentoId,
     "data": dataFormatada,
     "hora_inicio": "${vaga.horaInicio}:00",
     "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
-  }));
+  });
 
   final response = await ApiClient.post(
     '/motoboy-vaga/candidatar/',
     {
-      "motoboy"        : motoboyId,
+      "motoboy": motoboyId,
       "estabelecimento": vaga.estabelecimentoId,
-      "data"           : dataFormatada,
-      "hora_inicio"    : "${vaga.horaInicio}:00",
-      "hora_fim"       : "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
+      "data": dataFormatada,
+      "hora_inicio": "${vaga.horaInicio}:00",
+      "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
     },
   );
 
   if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception('Erro ao candidatar na vaga: ${response.body}');
+    throw Exception('Erro ao candidatar-se: ${response.body}');
   }
 }
 

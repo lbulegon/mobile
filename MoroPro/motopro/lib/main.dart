@@ -1,16 +1,26 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:motopro/pages/boasvindas_page.dart';
 import 'package:motopro/pages/login_page.dart';
-import 'package:motopro/pages/home_page.dart'; // você pode criar uma página básica por enquanto
-import 'package:intl/date_symbol_data_local.dart'; // ✅ import obrigatório
-import 'package:motopro/pages/pre_cadastro_page.dart'; // ✅ import da nova página
+import 'package:motopro/pages/home_page.dart';
+import 'package:motopro/pages/pre_cadastro_page.dart';
+import 'package:motopro/utils/navigation_service.dart'; // navigatorKey está aqui
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
+import 'package:motopro/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting(
-      'pt_BR', null); // ✅ habilita suporte a datas em português
+  await initializeDateFormatting('pt_BR', null);
 
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,6 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // ✅ ESSA LINHA É O PONTO-CHAVE
       debugShowCheckedModeBanner: false,
       title: 'MotoPro',
       theme: ThemeData(
@@ -29,10 +40,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (_) => const BoasVindasPage(),
         '/login': (_) => const LoginPage(),
-        '/home': (_) =>
-            const HomePage(), // você pode criar uma tela placeholder
-
-        // ✅ Adicione isto:
+        '/home': (_) => const HomePage(),
         '/pre-cadastro': (_) => const PreCadastroPage(),
       },
     );
