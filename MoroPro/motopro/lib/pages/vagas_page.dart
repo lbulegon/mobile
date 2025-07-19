@@ -1,3 +1,4 @@
+// motopro/lib/pages/vagas_page.dart
 import 'package:flutter/material.dart';
 import '../models/vagas.dart';
 import '../services/api_vagas.dart';
@@ -101,7 +102,15 @@ class _VagasPageState extends State<VagasPage> {
                               try {
                                 final motoboyId =
                                     await LocalStorage.getMotoboyId();
-                                await candidatarVaga(vaga, motoboyId);
+
+                                await candidatarVaga(
+                                  motoboyId: motoboyId,
+                                  estabelecimentoId: vaga.estabelecimentoId,
+                                  data: vaga.dataISO,
+                                  horaInicio: vaga.horaInicio,
+                                  horaFim: vaga.horaFim,
+                                );
+
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

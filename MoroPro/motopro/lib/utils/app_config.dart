@@ -13,5 +13,5 @@ class AppConfig {
   // Outros endpoints
   static const String preCadastro = '$apiUrl/motoboy/pre-cadastro/';
   static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
-  static const String candidatar = '$apiUrl/vagas/candidatar/';
+  static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
 }

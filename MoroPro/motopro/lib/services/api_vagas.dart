@@ -1,9 +1,9 @@
 // lib/services/api_vagas.dart
 import 'dart:convert';
+import 'package:motopro/utils/app_config.dart';
 import 'package:motopro/models/vagas.dart';
-import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/services/api_client.dart';
-import '../utils/date_utils.dart';
+import 'package:motopro/utils/date_utils.dart';
 
 /// 🔍 Buscar vagas abertas
 Future<List<Vaga>> fetchVagas() async {
@@ -30,42 +30,53 @@ Future<List<Vaga>> fetchMinhasVagas() async {
 }
 
 /// ✅ Candidatar-se a uma vaga
-Future<void> candidatarVaga(Vaga vaga, int motoboyId) async {
-  final motoboyId = await LocalStorage.getMotoboyId();
-
+Future<void> candidatarVaga({
+  required int motoboyId,
+  required int estabelecimentoId,
+  required String data,
+  required String horaInicio,
+  required String horaFim,
+}) async {
   if (motoboyId == 0) {
     throw Exception('Motoboy ID não encontrado. Faça login novamente.');
   }
 
-  if (vaga.estabelecimentoId == 0) {
+  if (estabelecimentoId == 0) {
     throw Exception('Estabelecimento ID inválido.');
   }
 
-  final dataFormatada = formatarDataISO(vaga.dataISO);
+  final dataFormatada = formatarDataISO(data);
+  final horaInicioFormatado = '$horaInicio:00';
+  final horaFimFormatado = (horaFim == '00:00') ? '23:59:00' : '$horaFim:00';
 
-  print('[DEBUG] Enviando candidatura com:');
-  print({
+  final payload = {
     "motoboy": motoboyId,
-    "estabelecimento": vaga.estabelecimentoId,
+    "estabelecimento": estabelecimentoId,
     "data": dataFormatada,
-    "hora_inicio": "${vaga.horaInicio}:00",
-    "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
-  });
+    "hora_inicio": horaInicioFormatado,
+    "hora_fim": horaFimFormatado,
+  };
+
+  print('[📤 ENVIANDO CANDIDATURA]');
+  print(payload);
 
   final response = await ApiClient.post(
-    '/motoboy-vaga/candidatar/',
-    {
-      "motoboy": motoboyId,
-      "estabelecimento": vaga.estabelecimentoId,
-      "data": dataFormatada,
-      "hora_inicio": "${vaga.horaInicio}:00",
-      "hora_fim": "${vaga.horaFim == '00:00' ? '23:59' : vaga.horaFim}:00",
-    },
+    AppConfig.candidatar,
+    payload,
   );
 
   if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception('Erro ao candidatar-se: ${response.body}');
+    try {
+      final erro = jsonDecode(response.body);
+      throw Exception(
+        'Erro ao candidatar-se: ${erro['detail'] ?? response.body}',
+      );
+    } catch (_) {
+      throw Exception('Erro ao candidatar-se: ${response.body}');
+    }
   }
+
+  print('[✅ CANDIDATURA CONFIRMADA] Status: ${response.statusCode}');
 }
 
 /// 🚫 Cancelar candidatura na vaga

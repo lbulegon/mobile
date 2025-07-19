@@ -14,7 +14,10 @@ class ApiClient {
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    final url = Uri.parse('$_baseUrl$endpoint');
+    // ✅ Corrige duplicação de baseUrl
+    final Uri url = endpoint.startsWith('http')
+        ? Uri.parse(endpoint)
+        : Uri.parse('$_baseUrl$endpoint');
 
     // 🐞 LOG de debug
     print('📡 GET: $url');
@@ -32,7 +35,10 @@ class ApiClient {
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    final url = Uri.parse('$_baseUrl$endpoint');
+    final url = endpoint.startsWith('http')
+        ? Uri.parse(endpoint)
+        : Uri.parse('$_baseUrl$endpoint');
+
     final body = jsonEncode(data);
 
     // 🐞 LOG de debug

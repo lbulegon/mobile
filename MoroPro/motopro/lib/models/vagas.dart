@@ -1,3 +1,4 @@
+// motopro/lib/models/vagas.dart
 import 'package:intl/intl.dart';
 
 class Vaga {
