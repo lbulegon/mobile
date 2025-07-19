@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopro/pages/boasvindas_page.dart';
+//import 'package:motopro/pages/boasvindas_page.dart';
 import 'package:motopro/pages/vagas_page.dart';
 import 'package:motopro/pages/perfil_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
