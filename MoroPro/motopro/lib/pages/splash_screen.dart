@@ -1,4 +1,5 @@
-// lib/pages/splash_screen.dart
+// motopro/lib/pages/splash_screen.dart    
+import 'package:motopro/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -22,13 +23,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple,
+      
+      backgroundColor: AppColors.splashBackground,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/icon/app_icon.png', // ajuste conforme o caminho do seu logo
+              'assets/icon/app_icon.png',
               width: 150,
             ),
             const SizedBox(height: 20),

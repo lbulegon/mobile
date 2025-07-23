@@ -131,17 +131,7 @@ class HomeContent extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            alignment: Alignment.center,
-            child: const Text(
-              'Porque quem acelera junto, entrega!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                backgroundColor: Colors.black45,
-              ),
-            ),
+            
           ),
           const SizedBox(height: 24),
           const Text(
