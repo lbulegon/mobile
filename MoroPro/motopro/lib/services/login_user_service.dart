@@ -21,13 +21,6 @@ Future<bool> login(String email, String password) async {
     );
 
     final data = response.data;
-    print('[📦 DATA]: $data');
-    print('[🧪 ACCESS]: ${data['access']}');
-    print('[🧪 REFRESH]: ${data['refresh']}');
-    print('[🎯 Enviando login]');
-    print('Email digitado: "$email"');
-    print('Senha digitada: "$password"');
-
     final access = data['access'];
     final refresh = data['refresh'];
 
