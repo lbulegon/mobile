@@ -2,10 +2,35 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
+  static const String _keyAccessToken = 'access_token';
+  static const String _keyRefreshToken = 'refresh_token';
   static const String _keyMotoboyId = 'motoboy_id';
   static const String _keyNome = 'nome';
   static const String _keyTelefone = 'telefone';
   static const String _keyEmail = 'email';
+
+  // Salvar tokens
+  static Future<void> saveTokens(String access, String refresh) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAccessToken, access);
+    await prefs.setString(_keyRefreshToken, refresh);
+  }
+
+  static Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAccessToken);
+  }
+
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRefreshToken);
+  }
+
+  static Future<void> clearTokens() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyAccessToken);
+    await prefs.remove(_keyRefreshToken);
+  }
 
   // Motoboy ID
   static Future<void> saveMotoboyId(int id) async {
