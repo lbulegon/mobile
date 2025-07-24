@@ -17,11 +17,14 @@ class _LoginPageState extends State<LoginPage> {
   String? _erro;
 
   Future<void> _fazerLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _carregando = true;
       _erro = null;
     });
 
+    // ✅ Chama o serviço correto
     final sucesso = await login(
       _emailController.text.trim(),
       _senhaController.text.trim(),
@@ -55,12 +58,16 @@ class _LoginPageState extends State<LoginPage> {
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'E-mail'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Digite o e-mail' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _senhaController,
                 decoration: const InputDecoration(labelText: 'Senha'),
                 obscureText: true,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Digite a senha' : null,
               ),
               const SizedBox(height: 24),
               _carregando
