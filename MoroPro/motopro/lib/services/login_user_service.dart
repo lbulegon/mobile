@@ -1,67 +1,88 @@
 // lib/services/login_user_service.dart
 import 'package:dio/dio.dart';
-import 'package:motopro/services/network/dio_client.dart';
-import 'package:motopro/services/session_manager.dart';
-import 'package:motopro/services/local_storage.dart';
-import 'package:motopro/providers/user_provider.dart';
-import 'package:motopro/utils/navigation_service.dart';
 import 'package:motopro/utils/app_config.dart';
-import 'package:provider/provider.dart';
+import 'package:motopro/services/local_storage.dart';
+final Dio dio = Dio(BaseOptions(
+  baseUrl: AppConfig.apiUrl,
+  connectTimeout: const Duration(seconds: 10),
+  receiveTimeout: const Duration(seconds: 10),
+));
 
-Future<bool> login(String email, String password) async {
-  final dio = DioClient.dio;
-
+/// Função de login
+Future<bool> login(String email, String senha) async {
   try {
     final response = await dio.post(
       AppConfig.login,
       data: {
-        'email': email.trim(),
-        'password': password,
+        "email": email,
+        "password": senha,
       },
     );
 
-    final data = response.data;
-    final access = data['access'];
-    final refresh = data['refresh'];
+    if (response.statusCode == 200) {
+      final data = response.data;
 
-    if (access != null && refresh != null) {
-      // Salvar tokens
-      await SessionManager.saveTokens(access, refresh);
+      // Tokens
+      final accessToken = data['access'];
+      final refreshToken = data['refresh'];
 
-      // Salvar dados locais
-      final motoboyId = data['motoboy_id'] ?? 0;
-      final nome = data['nome'] ?? '';
-      final telefone = data['telefone'] ?? '';
-      final userEmail = data['email'] ?? '';
+      if (accessToken != null && refreshToken != null) {
+        await LocalStorage.saveAccessToken(accessToken);
+        await LocalStorage.saveRefreshToken(refreshToken);
+      }
 
-      await LocalStorage.saveMotoboyId(motoboyId);
-      await LocalStorage.saveNome(nome);
-      await LocalStorage.saveTelefone(telefone);
-      await LocalStorage.saveEmail(userEmail);
+      // Salva dados adicionais
+      final nome = data['nome'];
+      final telefone = data['telefone'];
+      final userEmail = data['email'];
+      final motoboyId = data['motoboy_id'] ?? data['motoboyId'];
 
-      // Atualizar Provider
-      final context = navigatorKey.currentContext!;
-      context.read<UserProvider>().setUser(
-            nome,
-            userEmail,
-            telefone,
-            motoboyId,
-          );
+      if (nome != null) await LocalStorage.saveNome(nome);
+      if (telefone != null) await LocalStorage.saveTelefone(telefone);
+      if (userEmail != null) await LocalStorage.saveEmail(userEmail);
 
-      print(
-          '[✅ LOGIN] Motoboy ID: $motoboyId | Nome: $nome | Email: $userEmail');
+      if (motoboyId != null) {
+        await LocalStorage.saveMotoboyId(motoboyId);
+      }
+
       return true;
     }
-  } on DioException catch (e) {
-    if (e.response != null) {
-      print('❌ Erro de login: ${e.response?.statusCode}');
-      print('❌ Detalhes: ${e.response?.data}');
-    } else {
-      print('❌ Erro de conexão: $e');
-    }
-  } catch (e) {
-    print('❌ Erro inesperado: $e');
-  }
 
-  return false;
+    return false;
+  } catch (e) {
+    print("Erro no login: $e");
+    return false;
+  }
+}
+
+/// Função de refresh token
+Future<String?> refreshAccessToken() async {
+  try {
+    final refreshToken = await LocalStorage.getRefreshToken();
+
+    if (refreshToken == null) return null;
+
+    final response = await dio.post(
+      AppConfig.refreshToken,
+      data: {"refresh": refreshToken},
+    );
+
+    if (response.statusCode == 200) {
+      final newAccess = response.data['access'];
+
+      if (newAccess != null) {
+        await LocalStorage.saveAccessToken(newAccess);
+        return newAccess;
+      }
+    }
+    return null;
+  } catch (e) {
+    print("Erro no refresh token: $e");
+    return null;
+  }
+}
+
+/// Logout
+Future<void> logout() async {
+   await LocalStorage.clearUserData();
 }
