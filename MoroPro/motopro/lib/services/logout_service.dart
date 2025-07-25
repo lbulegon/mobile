@@ -3,6 +3,7 @@ import 'package:motopro/services/session_manager.dart';
 import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/providers/user_provider.dart';
 import 'package:motopro/utils/navigation_service.dart'; // navigatorKey
+import 'package:provider/provider.dart';
 
 void logout() async {
   // 1. Limpa tokens

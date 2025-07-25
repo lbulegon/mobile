@@ -1,33 +1,34 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
-class UserProvider with ChangeNotifier {
-  String _nome = '';
-  String _email = '';
-  String _telefone = '';
-  int _motoboyId = 0;
+class UserProvider extends ChangeNotifier {
+  int? _id;
+  String? _nome;
+  String? _email;
 
-  // Getters
-  String get nome => _nome;
-  String get email => _email;
-  String get telefone => _telefone;
-  int get motoboyId => _motoboyId;
+  int? get id => _id;
+  String? get nome => _nome;
+  String? get email => _email;
 
-  // Define os dados do usuário
-  void setUser(String nome, String email, String telefone, int motoboyId) {
+  bool get isLoggedIn => _id != null;
+
+  /// Define os dados do usuário logado
+  void setUserData({
+    required int id,
+    required String nome,
+    required String email,
+  }) {
+    _id = id;
     _nome = nome;
     _email = email;
-    _telefone = telefone;
-    _motoboyId = motoboyId;
     notifyListeners();
   }
 
-  // Limpa os dados do usuário
+  /// Limpa dados do usuário (logout)
   void clearUserData() {
-    _nome = '';
-    _email = '';
-    _telefone = '';
-    _motoboyId = 0;
+    _id = null;
+    _nome = null;
+    _email = null;
     notifyListeners();
   }
 }

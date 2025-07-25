@@ -1,6 +1,6 @@
 // motopro/lib/services/api_service.dart
 import 'package:dio/dio.dart';
-import 'dio_client.dart';
+import 'package:motopro/services/network/dio_client.dart';
 import 'package:motopro/utils/app_config.dart';
 
 class ApiService {

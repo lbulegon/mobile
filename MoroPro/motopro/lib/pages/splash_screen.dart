@@ -1,8 +1,6 @@
 // motopro/lib/pages/splash_screen.dart
-import 'package:motopro/theme/colors.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:motopro/services/session_manager.dart'; // <-- Import correto para tokens
+import 'package:motopro/services/local_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,39 +13,39 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _checkSession();
   }
 
-  Future<void> _checkLoginStatus() async {
-    // Espera 2 segundos para mostrar a splash
-    await Future.delayed(const Duration(seconds: 2));
+  /// Verifica se o usuário tem sessão salva
+  Future<void> _checkSession() async {
+    await Future.delayed(const Duration(seconds: 2)); // animação rápida
 
-    // Pega o access token salvo no SessionManager
-    final accessToken = await SessionManager.getAccessToken();
+    final accessToken = await LocalStorage.getAccessToken();
+    final motoboyId = await LocalStorage.getMotoboyId();
 
-    if (accessToken != null && accessToken.isNotEmpty) {
-      // Token existe -> vai direto para Home
-      Navigator.of(context).pushReplacementNamed('/home');
+    if (accessToken != null && accessToken.isNotEmpty && motoboyId > 0) {
+      // Tem sessão: vai para Home
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } else {
-      // Sem token -> vai para Login
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Não tem sessão: vai para Login
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.splashBackground,
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icon/app_icon.png',
-              width: 150,
-            ),
-            const SizedBox(height: 20),
-            const CircularProgressIndicator(color: Colors.white),
+            FlutterLogo(size: 120),
+            SizedBox(height: 20),
+            CircularProgressIndicator(),
           ],
         ),
       ),

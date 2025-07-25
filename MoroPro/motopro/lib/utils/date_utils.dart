@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 /// Converte uma string no formato "2025-07-08" ou DateTime
 /// para o formato ISO seguro "yyyy-MM-dd".
 /// Retorna string vazia se inválida.

@@ -1,5 +1,9 @@
+//lib/pages/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:motopro/services/login_user_service.dart';
+import 'package:motopro/services/local_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:motopro/providers/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,15 +28,25 @@ class _LoginPageState extends State<LoginPage> {
       _erro = null;
     });
 
-    // ✅ Chama o serviço correto
-    final sucesso = await login(
+    // Chama o serviço de login (agora retorna LoginResult?)
+    final loginResult = await login(
       _emailController.text.trim(),
       _senhaController.text.trim(),
     );
 
     setState(() => _carregando = false);
 
-    if (sucesso && mounted) {
+    if (loginResult != null) {
+      // Tokens e dados já salvos no LocalStorage dentro do login()
+
+      // Atualiza Provider com dados do usuário logado
+      context.read<UserProvider>().setUserData(
+            id: loginResult.motoboyId,
+            nome: loginResult.nome,
+            email: loginResult.email,
+          );
+
+      // Navega para a Home
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       setState(() => _erro = 'E-mail ou senha inválidos');
@@ -78,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
               const SizedBox(height: 24),
 
-              // 🔗 Botão de cadastro
+              // Botão para cadastro
               TextButton(
                 onPressed: _irParaCadastro,
                 child: const Text('Ainda não tem cadastro? Criar conta'),

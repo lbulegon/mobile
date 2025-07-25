@@ -1,88 +1,65 @@
 // lib/services/login_user_service.dart
-import 'package:dio/dio.dart';
-import 'package:motopro/utils/app_config.dart';
-import 'package:motopro/services/local_storage.dart';
-final Dio dio = Dio(BaseOptions(
-  baseUrl: AppConfig.apiUrl,
-  connectTimeout: const Duration(seconds: 10),
-  receiveTimeout: const Duration(seconds: 10),
-));
 
-/// Função de login
-Future<bool> login(String email, String senha) async {
+// lib/services/login_user_service.dart
+import 'package:dio/dio.dart';
+import 'package:motopro/services/network/dio_client.dart';
+import 'package:motopro/services/local_storage.dart';
+import 'package:motopro/utils/app_config.dart';
+
+class LoginResult {
+  final String accessToken;
+  final String refreshToken;
+  final String nome;
+  final String email;
+  final String telefone;
+  final int motoboyId;
+
+  LoginResult({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.nome,
+    required this.email,
+    required this.telefone,
+    required this.motoboyId,
+  });
+}
+
+Future<LoginResult?> login(String email, String senha) async {
   try {
-    final response = await dio.post(
-      AppConfig.login,
+    final response = await DioClient.dio.post(
+      AppConfig.login, // "/api/v1/token/"
       data: {
         "email": email,
         "password": senha,
       },
     );
 
-    if (response.statusCode == 200) {
-      final data = response.data;
+    print('Resposta do login: ${response.data}'); // DEBUG
 
-      // Tokens
-      final accessToken = data['access'];
-      final refreshToken = data['refresh'];
-
-      if (accessToken != null && refreshToken != null) {
-        await LocalStorage.saveAccessToken(accessToken);
-        await LocalStorage.saveRefreshToken(refreshToken);
-      }
-
-      // Salva dados adicionais
-      final nome = data['nome'];
-      final telefone = data['telefone'];
-      final userEmail = data['email'];
-      final motoboyId = data['motoboy_id'] ?? data['motoboyId'];
-
-      if (nome != null) await LocalStorage.saveNome(nome);
-      if (telefone != null) await LocalStorage.saveTelefone(telefone);
-      if (userEmail != null) await LocalStorage.saveEmail(userEmail);
-
-      if (motoboyId != null) {
-        await LocalStorage.saveMotoboyId(motoboyId);
-      }
-
-      return true;
-    }
-
-    return false;
-  } catch (e) {
-    print("Erro no login: $e");
-    return false;
-  }
-}
-
-/// Função de refresh token
-Future<String?> refreshAccessToken() async {
-  try {
-    final refreshToken = await LocalStorage.getRefreshToken();
-
-    if (refreshToken == null) return null;
-
-    final response = await dio.post(
-      AppConfig.refreshToken,
-      data: {"refresh": refreshToken},
+    // Monta resultado do login
+    final loginResult = LoginResult(
+      accessToken: response.data['access'],
+      refreshToken: response.data['refresh'],
+      nome: response.data['nome'],
+      email: response.data['email'],
+      telefone: response.data['telefone'],
+      motoboyId: response.data['motoboy_id'],
     );
 
-    if (response.statusCode == 200) {
-      final newAccess = response.data['access'];
+    // Salva tokens e dados do motoboy
+    await LocalStorage.saveTokens(loginResult.accessToken, loginResult.refreshToken);
+    await LocalStorage.saveMotoboyData(
+      loginResult.motoboyId,
+      loginResult.nome,
+      loginResult.telefone,
+      loginResult.email,
+    );
 
-      if (newAccess != null) {
-        await LocalStorage.saveAccessToken(newAccess);
-        return newAccess;
-      }
+    return loginResult;
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 401) {
+      return null; // credenciais inválidas
     }
-    return null;
-  } catch (e) {
-    print("Erro no refresh token: $e");
-    return null;
+    rethrow; // outro erro (servidor, rede etc.)
   }
-}
-
-/// Logout
-Future<void> logout() async {
-   await LocalStorage.clearUserData();
 }
