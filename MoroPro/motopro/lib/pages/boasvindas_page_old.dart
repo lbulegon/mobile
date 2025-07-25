@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:motopro/pages/login_page.dart';
-import 'package:motopro/pages/pre_cadastro_page.dart';
 
 class BoasVindasPage extends StatelessWidget {
   const BoasVindasPage({super.key});
