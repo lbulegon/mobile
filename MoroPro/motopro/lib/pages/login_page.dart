@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _formKey         = GlobalKey<FormState>();
 
   bool _carregando = false;
   String? _erro;
@@ -40,8 +40,8 @@ class _LoginPageState extends State<LoginPage> {
 
       // Atualiza Provider com dados do usuário logado
       context.read<UserProvider>().setUserData(
-            id: loginResult.motoboyId,
-            nome: loginResult.nome,
+            id:    loginResult.motoboyId,
+            nome:  loginResult.nome,
             email: loginResult.email,
           );
 
