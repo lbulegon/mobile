@@ -12,6 +12,7 @@ class JwtInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     // Adiciona token de acesso em todas as requisições
     final token = await SessionManager.getAccessToken();
+    print('TOKEN DIRETO 6: $token');
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -57,7 +58,7 @@ class JwtInterceptor extends Interceptor {
 
   Future<void> _forceLogout(ErrorInterceptorHandler handler, DioException err) async {
     // Limpa tokens e redireciona para login
-    await SessionManager.clearTokens();
+    await LocalStorage.clearTokens();
     navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
     return handler.next(err);
   }

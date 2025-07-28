@@ -11,7 +11,7 @@ class AppTheme {
       colorScheme: const ColorScheme.dark().copyWith(
         primary: AppColors.primaryBlue,
         secondary: AppColors.primaryBlueLight,
-        background: AppColors.background,
+       
         surface: AppColors.surface,
         error: AppColors.error,
       ),

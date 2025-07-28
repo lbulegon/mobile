@@ -36,7 +36,7 @@ class _EnviarDocumentosPageState extends State<EnviarDocumentosPage> {
       isUploading = true;
     });
 
-    final token = await SessionManager.getToken();
+    final token = await LocalStorage.getAccessToken();
 
     final request = http.MultipartRequest(
       'POST',

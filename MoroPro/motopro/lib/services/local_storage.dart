@@ -2,7 +2,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
-  // Chaves para SharedPreferences
+  // Chaves
   static const String _keyAccessToken = 'access_token';
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyMotoboyId = 'motoboy_id';
@@ -10,10 +10,9 @@ class LocalStorage {
   static const String _keyTelefone = 'telefone';
   static const String _keyEmail = 'email';
 
-  // -----------------------------------------------------
-  // TOKENS
-  // -----------------------------------------------------
-  static Future<void> saveTokens(String accessToken, String refreshToken) async {
+  // ===== TOKENS =====
+  static Future<void> saveTokens(
+      String accessToken, String refreshToken) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyAccessToken, accessToken);
     await prefs.setString(_keyRefreshToken, refreshToken);
@@ -35,15 +34,9 @@ class LocalStorage {
     await prefs.remove(_keyRefreshToken);
   }
 
-  // -----------------------------------------------------
-  // DADOS DO MOTOBOY
-  // -----------------------------------------------------
+  // ===== DADOS DO MOTOBOY =====
   static Future<void> saveMotoboyData(
-    int id,
-    String nome,
-    String telefone,
-    String email,
-  ) async {
+      int id, String nome, String telefone, String email) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyMotoboyId, id);
     await prefs.setString(_keyNome, nome);
@@ -71,19 +64,9 @@ class LocalStorage {
     return prefs.getString(_keyEmail) ?? '';
   }
 
-  static Future<void> clearMotoboyData() async {
+  // ===== LIMPAR =====
+  static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyMotoboyId);
-    await prefs.remove(_keyNome);
-    await prefs.remove(_keyTelefone);
-    await prefs.remove(_keyEmail);
-  }
-
-  // -----------------------------------------------------
-  // LIMPAR TUDO (tokens + dados motoboy)
-  // -----------------------------------------------------
-  static Future<void> clearAll() async {
-    await clearTokens();
-    await clearMotoboyData();
+    await prefs.clear();
   }
 }

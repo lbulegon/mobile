@@ -1,6 +1,8 @@
 // motopro/lib/pages/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:motopro/services/local_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:motopro/providers/user_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,26 +15,32 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSession();
+    _checkLogin();
   }
 
-  /// Verifica se o usuário tem sessão salva
-  Future<void> _checkSession() async {
-    await Future.delayed(const Duration(seconds: 2)); // animação rápida
+  Future<void> _checkLogin() async {
+    // Lê token
+    final token = await LocalStorage.getAccessToken();
+    print('TOKEN DIRETO 1: $token');
 
-    final accessToken = await LocalStorage.getAccessToken();
-    final motoboyId = await LocalStorage.getMotoboyId();
+    if (token != null && token.isNotEmpty) {
+      // Pega também os dados salvos do motoboy
+      final id = await LocalStorage.getMotoboyId();
+      final nome = await LocalStorage.getNome();
+      final email = await LocalStorage.getEmail();
 
-    if (accessToken != null && accessToken.isNotEmpty && motoboyId > 0) {
-      // Tem sessão: vai para Home
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      // Atualiza o Provider
+      context.read<UserProvider>().setUserData(
+            id: id,
+            nome: nome,
+            email: email,
+          );
+
+      // Vai para Home
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
-      // Não tem sessão: vai para Login
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      // Vai para Login
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
@@ -40,14 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FlutterLogo(size: 120),
-            SizedBox(height: 20),
-            CircularProgressIndicator(),
-          ],
-        ),
+        child: CircularProgressIndicator(),
       ),
     );
   }

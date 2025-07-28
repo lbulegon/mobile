@@ -1,10 +1,11 @@
 //motopro/lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:motopro/theme/app_theme.dart';
 import 'package:motopro/pages/splash_screen.dart';
 import 'package:motopro/pages/login_page.dart';
 import 'package:motopro/pages/home_page.dart';
 import 'package:motopro/pages/pre_cadastro_page.dart';
-import 'package:motopro/utils/navigation_service.dart'; // navigatorKey está aqui
+import 'package:motopro/utils/navigation_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:motopro/providers/user_provider.dart';
@@ -32,16 +33,13 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'MotoPro',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      initialRoute: '/',
+      theme: AppTheme.darkTheme, // Aqui aplica o tema escuro
+      // SplashScreen será a primeira tela
+      home: const SplashScreen(),
       routes: {
-        '/': (_) => const SplashScreen(), // 🔄 trocado aqui
-        '/login': (_) => const LoginPage(),
-        '/home': (_) => const HomePage(),
-        '/pre-cadastro': (_) => const PreCadastroPage(),
+        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+        '/pre-cadastro': (context) => const PreCadastroPage(),
       },
     );
   }

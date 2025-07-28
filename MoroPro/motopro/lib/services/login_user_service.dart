@@ -1,6 +1,4 @@
 // lib/services/login_user_service.dart
-
-// lib/services/login_user_service.dart
 import 'package:dio/dio.dart';
 import 'package:motopro/services/network/dio_client.dart';
 import 'package:motopro/services/local_storage.dart';
@@ -27,27 +25,40 @@ class LoginResult {
 Future<LoginResult?> login(String email, String senha) async {
   try {
     final response = await DioClient.dio.post(
-      AppConfig.login, // "/api/v1/token/"
+      AppConfig.login,
       data: {
         "email": email,
         "password": senha,
       },
     );
 
-    print('Resposta do login: ${response.data}'); // DEBUG
+    print('🔑 Resposta do login: ${response.data}');
 
-    // Monta resultado do login
+    // Checar se as chaves existem
+    if (response.data['access'] == null || response.data['refresh'] == null) {
+      print('❌ ERRO: API não retornou tokens.');
+      return null;
+    }
+
+    // Montar objeto
     final loginResult = LoginResult(
       accessToken: response.data['access'],
       refreshToken: response.data['refresh'],
-      nome: response.data['nome'],
-      email: response.data['email'],
-      telefone: response.data['telefone'],
-      motoboyId: response.data['motoboy_id'],
+      nome: response.data['nome'] ?? '',
+      email: response.data['email'] ?? '',
+      telefone: response.data['telefone'] ?? '',
+      motoboyId: response.data['motoboy_id'] ?? 0,
     );
 
-    // Salva tokens e dados do motoboy
-    await LocalStorage.saveTokens(loginResult.accessToken, loginResult.refreshToken);
+    // Salvar tokens
+    await LocalStorage.saveTokens(
+        loginResult.accessToken, loginResult.refreshToken);
+      
+    print('DEBUG: Tokens salvos: ${loginResult.accessToken}');
+    print('✅ Access salvo: ${loginResult.accessToken.substring(0, 10)}...');
+    print('✅ Refresh salvo: ${loginResult.refreshToken.substring(0, 10)}...');
+
+    // Salvar dados do motoboy
     await LocalStorage.saveMotoboyData(
       loginResult.motoboyId,
       loginResult.nome,
@@ -57,9 +68,10 @@ Future<LoginResult?> login(String email, String senha) async {
 
     return loginResult;
   } on DioException catch (e) {
+    print('⚠️ Erro login: ${e.response?.statusCode} - ${e.message}');
     if (e.response?.statusCode == 401) {
-      return null; // credenciais inválidas
+      return null;
     }
-    rethrow; // outro erro (servidor, rede etc.)
+    rethrow;
   }
 }

@@ -11,6 +11,7 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     final token = await SessionManager.getAccessToken();
+    print('TOKEN DIRETO 4: $token');
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
