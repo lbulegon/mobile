@@ -59,6 +59,10 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.pushNamed(context, '/pre-cadastro');
   }
 
+void _irParaRecuperarSenha () {
+    Navigator.pushNamed(context, '/pre-cadastro');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +101,10 @@ class _LoginPageState extends State<LoginPage> {
               TextButton(
                 onPressed: _irParaCadastro,
                 child: const Text('Ainda não tem cadastro? Criar conta'),
+              ),
+               TextButton(
+                onPressed: _irParaRecuperarSenha,
+                child: const Text('Recuperar senha'),
               ),
             ],
           ),
