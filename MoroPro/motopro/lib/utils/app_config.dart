@@ -14,4 +14,7 @@ class AppConfig {
   static const String preCadastro = '$apiUrl/motoboy/pre-cadastro/';
   static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
   static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
+
+  static const String passwordReset = '$baseUrl/password-reset/';
+  static const String passwordResetConfirm = '$baseUrl/password-reset/confirm/';
 }

@@ -9,6 +9,8 @@ import 'package:motopro/utils/navigation_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:motopro/providers/user_provider.dart';
+import 'package:motopro/pages/recuperar_senha_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
         '/pre-cadastro': (context) => const PreCadastroPage(),
+        '/recuperar-senha': (context) => const RecuperarSenhaPage(), // NOVA
       },
     );
   }
