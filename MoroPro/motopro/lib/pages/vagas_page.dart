@@ -86,7 +86,7 @@ class _VagasPageState extends State<VagasPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Text('Nenhuma vaga visível no momento.'),
+                            Text('Nenhuma vaga disponível no momento.'),
                             SizedBox(height: 16),
                           ],
                         ),
