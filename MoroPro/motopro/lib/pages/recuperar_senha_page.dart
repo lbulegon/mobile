@@ -13,12 +13,19 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _novaSenhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
 
   bool _codigoEnviado = false;
   bool _carregando = false;
   String? _mensagem;
 
+  /// Envia o OTP para o e-mail informado
   Future<void> _enviarCodigo() async {
+    if (_emailController.text.trim().isEmpty) {
+      setState(() => _mensagem = 'Informe um e-mail válido');
+      return;
+    }
+
     setState(() {
       _carregando = true;
       _mensagem = null;
@@ -35,7 +42,21 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
     });
   }
 
+  /// Confirma nova senha usando OTP
   Future<void> _resetarSenha() async {
+    if (_otpController.text.trim().isEmpty ||
+        _novaSenhaController.text.trim().isEmpty ||
+        _confirmarSenhaController.text.trim().isEmpty) {
+      setState(() => _mensagem = 'Preencha todos os campos');
+      return;
+    }
+
+    if (_novaSenhaController.text.trim() !=
+        _confirmarSenhaController.text.trim()) {
+      setState(() => _mensagem = 'As senhas não coincidem');
+      return;
+    }
+
     setState(() {
       _carregando = true;
       _mensagem = null;
@@ -49,12 +70,13 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
 
     setState(() {
       _carregando = false;
-      _mensagem =
-          sucesso ? 'Senha redefinida com sucesso!' : 'Erro ao redefinir senha.';
+      _mensagem = sucesso
+          ? 'Senha redefinida com sucesso!'
+          : 'Erro ao redefinir senha.';
     });
 
     if (sucesso && mounted) {
-      // Retorna para login
+      // Retorna para login após 2 segundos
       Future.delayed(const Duration(seconds: 2), () {
         Navigator.pop(context);
       });
@@ -76,9 +98,10 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
                 child: Text(
                   _mensagem!,
                   style: TextStyle(
-                      color: _mensagem!.contains('sucesso')
-                          ? Colors.green
-                          : Colors.red),
+                    color: _mensagem!.contains('sucesso')
+                        ? Colors.green
+                        : Colors.red,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -98,6 +121,12 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
               TextField(
                 controller: _novaSenhaController,
                 decoration: const InputDecoration(labelText: 'Nova Senha'),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmarSenhaController,
+                decoration: const InputDecoration(labelText: 'Confirmar Senha'),
                 obscureText: true,
               ),
               const SizedBox(height: 24),

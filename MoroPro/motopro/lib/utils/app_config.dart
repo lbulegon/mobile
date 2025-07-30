@@ -15,6 +15,7 @@ class AppConfig {
   static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
   static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
 
-  static const String passwordReset = '$baseUrl/password-reset/';
-  static const String passwordResetConfirm = '$baseUrl/password-reset/confirm/';
+  static const String passwordReset = '$apiUrl/password/password-reset/';
+  static const String passwordResetConfirm =
+      '$apiUrl/password/password-reset/confirm/';
 }

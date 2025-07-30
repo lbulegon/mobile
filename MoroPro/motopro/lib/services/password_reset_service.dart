@@ -6,7 +6,7 @@ import 'package:motopro/utils/app_config.dart';
 Future<bool> enviarCodigoOTP(String email) async {
   try {
     final response = await DioClient.dio.post(
-      AppConfig.passwordReset, // Ex: "/api/v1/password-reset/"
+      AppConfig.passwordReset, // "/api/v1/password/password-reset/"
       data: {"email": email},
     );
     return response.statusCode == 200;
@@ -16,14 +16,16 @@ Future<bool> enviarCodigoOTP(String email) async {
 }
 
 /// Confirma nova senha usando OTP
-Future<bool> confirmarNovaSenha(String email, String otp, String novaSenha) async {
+Future<bool> confirmarNovaSenha(
+    String email, String otp, String novaSenha) async {
   try {
     final response = await DioClient.dio.post(
-      AppConfig.passwordResetConfirm, // Ex: "/api/v1/password-reset/confirm/"
+      AppConfig
+          .passwordResetConfirm, // "/api/v1/password/password-reset/confirm/"
       data: {
         "email": email,
         "otp": otp,
-        "new_password": novaSenha,
+        "nova_senha": novaSenha, // <-- Corrigido aqui
       },
     );
     return response.statusCode == 200;
