@@ -102,15 +102,9 @@ class _VagasPageState extends State<VagasPage> {
                               try {
                                 final motoboyId =
                                     await LocalStorage.getMotoboyId();
-                                    
-                                if (motoboyId == null) {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/login');
-                                  return;
-                                }
 
                                 await candidatarVaga(
-                                  motoboyId: motoboyId ?? 0,
+                                  motoboyId: motoboyId,
                                   estabelecimentoId: vaga.estabelecimentoId,
                                   data: vaga.dataISO,
                                   horaInicio: vaga.horaInicio,

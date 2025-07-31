@@ -11,7 +11,9 @@ class JwtInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     // Adiciona token de acesso em todas as requisições
-    final token = await SessionManager.getAccessToken();
+    //final token = await SessionManager.getAccessToken();
+    final token = await LocalStorage.getAccessToken();
+    
     print('TOKEN DIRETO 6: $token');
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -25,7 +27,9 @@ class JwtInterceptor extends Interceptor {
     if (err.response?.statusCode == 401 &&
         err.requestOptions.path != AppConfig.refreshToken) {
       try {
-        final refresh = await SessionManager.getRefreshToken();
+        //final refresh = await SessionManager.getRefreshToken();
+        final refresh = await LocalStorage.getRefreshToken();
+        
         if (refresh == null) {
           return _forceLogout(handler, err);
         }
@@ -40,7 +44,8 @@ class JwtInterceptor extends Interceptor {
         final newRefresh = refreshResponse.data['refresh'];
 
         // Salva novos tokens
-        await SessionManager.saveTokens(newAccess, newRefresh);
+       // await SessionManager.saveTokens(newAccess, newRefresh);
+        await LocalStorage.saveTokens(newAccess, newRefresh);
 
         // Refaz a requisição original com o novo token
         final retryRequest = err.requestOptions;

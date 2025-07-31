@@ -9,7 +9,8 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await SessionManager.getAccessToken();
+    //final token = await SessionManager.getAccessToken();
+    final token = await LocalStorage.getAccessToken();
     print("TOKEN DIRETO 4: $token");
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -28,7 +29,8 @@ class AuthInterceptor extends Interceptor {
     if (isUnauthorized && isNotRefresh) {
       final success = await _refreshToken();
       if (success) {
-        final newToken = await SessionManager.getAccessToken();
+        //final newToken = await SessionManager.getAccessToken();
+        final newToken = await LocalStorage.getAccessToken();
         final retryResponse = await _retry(err.requestOptions, newToken!);
         return handler.resolve(retryResponse);
       }
@@ -38,7 +40,9 @@ class AuthInterceptor extends Interceptor {
   }
 
   Future<bool> _refreshToken() async {
-    final refresh = await SessionManager.getRefreshToken();
+    //final refresh = await SessionManager.getRefreshToken();
+    final refresh = await LocalStorage.getRefreshToken();
+    
     if (refresh == null) return false;
 
     try {
@@ -52,7 +56,9 @@ class AuthInterceptor extends Interceptor {
       );
 
       if (response.statusCode == 200 && response.data['access'] != null) {
-        await SessionManager.saveAccessToken(response.data['access']);
+        //await SessionManager.saveAccessToken(response.data['access']);
+        await LocalStorage.saveAccessToken(response.data['access']);
+        
         return true;
       }
     } catch (e) {

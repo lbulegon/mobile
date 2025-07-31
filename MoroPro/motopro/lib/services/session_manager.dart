@@ -17,6 +17,18 @@ class LocalStorage {
     return prefs.getString(_keyAccessToken);
   }
 
+  /// Salva apenas o access token (para refresh automático)
+  static Future<void> saveAccessToken(String accessToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAccessToken, accessToken);
+  }
+
+  /// Salva apenas o refresh token
+  static Future<void> saveRefreshToken(String refreshToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyRefreshToken, refreshToken);
+  }
+
   /// Retorna o Refresh Token
   static Future<String?> getRefreshToken() async {
     final prefs = await SharedPreferences.getInstance();
