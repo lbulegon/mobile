@@ -26,3 +26,4 @@ Celular Sem cabo
 - adb tcpip 5555
 - adb connect 192.168.0.31:5555 
 - adb devices
+

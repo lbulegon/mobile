@@ -2,7 +2,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
-  // Chaves
   static const String _keyAccessToken = 'access_token';
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyMotoboyId = 'motoboy_id';
@@ -10,63 +9,82 @@ class LocalStorage {
   static const String _keyTelefone = 'telefone';
   static const String _keyEmail = 'email';
 
-  // ===== TOKENS =====
-  static Future<void> saveTokens(
-      String accessToken, String refreshToken) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyAccessToken, accessToken);
-    await prefs.setString(_keyRefreshToken, refreshToken);
+  // TOKENS
+  static Future<void> saveTokens(String access, String refresh) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyAccessToken, access);
+    await p.setString(_keyRefreshToken, refresh);
+  }
+
+  static Future<void> setAccessToken(String access) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyAccessToken, access);
+  }
+
+  static Future<void> setRefreshToken(String refresh) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_keyRefreshToken, refresh);
+  }
+
+  static Future<void> setTokensIfPresent(
+      {String? access, String? refresh}) async {
+    final p = await SharedPreferences.getInstance();
+    if (access != null && access.isNotEmpty)
+      await p.setString(_keyAccessToken, access);
+    if (refresh != null && refresh.isNotEmpty)
+      await p.setString(_keyRefreshToken, refresh);
   }
 
   static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyAccessToken);
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_keyAccessToken);
   }
 
   static Future<String?> getRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyRefreshToken);
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_keyRefreshToken);
   }
 
   static Future<void> clearTokens() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyAccessToken);
-    await prefs.remove(_keyRefreshToken);
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_keyAccessToken);
+    await p.remove(_keyRefreshToken);
   }
 
-  // ===== DADOS DO MOTOBOY =====
+  // DADOS
   static Future<void> saveMotoboyData(
       int id, String nome, String telefone, String email) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyMotoboyId, id);
-    await prefs.setString(_keyNome, nome);
-    await prefs.setString(_keyTelefone, telefone);
-    await prefs.setString(_keyEmail, email);
+    final p = await SharedPreferences.getInstance();
+    await p.setInt(_keyMotoboyId, id);
+    await p.setString(_keyNome, nome);
+    await p.setString(_keyTelefone, telefone);
+    await p.setString(_keyEmail, email);
   }
 
   static Future<int> getMotoboyId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_keyMotoboyId) ?? 0;
+    final p = await SharedPreferences.getInstance();
+    return p.getInt(_keyMotoboyId) ?? 0;
   }
 
   static Future<String> getNome() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyNome) ?? '';
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_keyNome) ?? '';
   }
 
   static Future<String> getTelefone() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyTelefone) ?? '';
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_keyTelefone) ?? '';
   }
 
   static Future<String> getEmail() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyEmail) ?? '';
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_keyEmail) ?? '';
   }
 
-  // ===== LIMPAR =====
+  // LIMPAR
+  static Future<void> clearAll() => clear();
   static Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    final p = await SharedPreferences.getInstance();
+    await p.clear();
   }
 }

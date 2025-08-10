@@ -1,3 +1,4 @@
+//motopro/lib/pages/minhas_vagas_page.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/vagas.dart';

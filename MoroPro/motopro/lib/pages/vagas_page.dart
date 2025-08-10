@@ -1,8 +1,8 @@
 // motopro/lib/pages/vagas_page.dart
 import 'package:flutter/material.dart';
-import '../models/vagas.dart';
-import '../services/api_vagas.dart';
-import '../services/local_storage.dart';
+import 'package:motopro/models/vagas.dart';
+import 'package:motopro/services/api_vagas.dart' as vagas_api;
+import 'package:motopro/services/local_storage.dart';
 
 class VagasPage extends StatefulWidget {
   const VagasPage({super.key});
@@ -30,7 +30,7 @@ class _VagasPageState extends State<VagasPage> {
     });
 
     try {
-      final lista = await fetchVagas();
+      final lista = await vagas_api.fetchVagas();
       setState(() {
         todasAsVagas = lista;
         carregando = false;
@@ -103,7 +103,7 @@ class _VagasPageState extends State<VagasPage> {
                                 final motoboyId =
                                     await LocalStorage.getMotoboyId();
 
-                                await candidatarVaga(
+                                await vagas_api.candidatarVaga(
                                   motoboyId: motoboyId,
                                   estabelecimentoId: vaga.estabelecimentoId,
                                   data: vaga.dataISO,
@@ -119,7 +119,7 @@ class _VagasPageState extends State<VagasPage> {
                                     ),
                                   ),
                                 );
-                                carregarVagas();
+                                await carregarVagas();
                               } catch (e) {
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -138,9 +138,9 @@ class _VagasPageState extends State<VagasPage> {
   }
 }
 
-class VagaCard extends StatelessWidget {
+class VagaCard extends StatefulWidget {
   final Vaga vaga;
-  final VoidCallback onCandidatar;
+  final Future<void> Function() onCandidatar;
   final VoidCallback onOcultar;
 
   const VagaCard({
@@ -149,6 +149,13 @@ class VagaCard extends StatelessWidget {
     required this.onCandidatar,
     required this.onOcultar,
   });
+
+  @override
+  State<VagaCard> createState() => _VagaCardState();
+}
+
+class _VagaCardState extends State<VagaCard> {
+  bool _busy = false;
 
   @override
   Widget build(BuildContext context) {
@@ -160,12 +167,15 @@ class VagaCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              vaga.empresa,
+              widget.vaga.empresa,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Local: ${vaga.local}\nDia: ${vaga.dia}\nHorário: ${vaga.hora}\nObservação: ${vaga.observacao}',
+              'Local: ${widget.vaga.local}\n'
+              'Dia: ${widget.vaga.dia}\n'
+              'Horário: ${widget.vaga.hora}\n'
+              'Observação: ${widget.vaga.observacao}',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -173,13 +183,28 @@ class VagaCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: onOcultar,
+                  onPressed: _busy ? null : widget.onOcultar,
                   child: const Text('Ocultar'),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: onCandidatar,
-                  child: const Text('Candidatar-se'),
+                  onPressed: _busy
+                      ? null
+                      : () async {
+                          setState(() => _busy = true);
+                          try {
+                            await widget.onCandidatar();
+                          } finally {
+                            if (mounted) setState(() => _busy = false);
+                          }
+                        },
+                  child: _busy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Candidatar-se'),
                 ),
               ],
             ),

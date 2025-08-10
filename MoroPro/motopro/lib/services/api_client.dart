@@ -1,54 +1,86 @@
+// lib/services/api_client.dart
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:motopro/services/session_manager.dart';
-import '../utils/app_config.dart';
+import 'package:dio/dio.dart';
+import 'package:motopro/utils/app_config.dart';
+import 'package:motopro/services/network/dio_client.dart';
+
+class ApiResponse {
+  final int statusCode;
+  final String body;
+  final Map<String, List<String>> headers;
+  ApiResponse(
+      {required this.statusCode, required this.body, required this.headers});
+}
 
 class ApiClient {
-  static const String _baseUrl = AppConfig.apiUrl;
+  static Dio get _dio => DioClient.dio;
 
-  static Future<http.Response> get(String endpoint) async {
-    final token = await LocalStorage.getAccessToken();
-
-    print('TOKEN DIRETO 2 : $token');
-
-    final headers = {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-
-    // ✅ Corrige duplicação de baseUrl
-    final Uri url = endpoint.startsWith('http')
-        ? Uri.parse(endpoint)
-        : Uri.parse('$_baseUrl$endpoint');
-
-    // 🐞 LOG de debug
-    print('📡 GET: $url');
-    print('🔐 Token: $token');
-    print('📬 Headers: $headers');
-
-    return await http.get(url, headers: headers);
+  static String _normalize(String pathOrUrl) {
+    if (pathOrUrl.startsWith('http')) return pathOrUrl;
+    // caminhos iniciando com "/" viram {base}/{apiPrefix}/...
+    if (pathOrUrl.startsWith('/')) return '${AppConfig.apiUrl}$pathOrUrl';
+    return '${AppConfig.apiUrl}/$pathOrUrl';
   }
 
-  static Future<http.Response> post(String endpoint, dynamic data) async {
-    final token = await LocalStorage.getAccessToken();
-    print('TOKEN DIRETO 3 : $token');
-    final headers = {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
+  static ApiResponse _ok(Response r) {
+    final bodyStr = r.data is String ? r.data : jsonEncode(r.data);
+    final hdrs = <String, List<String>>{};
+    r.headers.forEach((k, v) => hdrs[k] = v.map((e) => e.toString()).toList());
+    return ApiResponse(
+        statusCode: r.statusCode ?? 0, body: bodyStr, headers: hdrs);
+  }
 
-    final url = endpoint.startsWith('http')
-        ? Uri.parse(endpoint)
-        : Uri.parse('$_baseUrl$endpoint');
+  static ApiResponse _err(DioException e) {
+    final status = e.response?.statusCode ?? 0;
+    final data = e.response?.data;
+    final bodyStr =
+        data is String ? data : jsonEncode(data ?? {'error': e.message});
+    final hdrs = <String, List<String>>{};
+    e.response?.headers
+        .forEach((k, v) => hdrs[k] = v.map((e) => e.toString()).toList());
+    return ApiResponse(statusCode: status, body: bodyStr, headers: hdrs);
+  }
 
-    final body = jsonEncode(data);
+  static Future<ApiResponse> get(String pathOrUrl,
+      {Map<String, dynamic>? query}) async {
+    try {
+      final r = await _dio.get(_normalize(pathOrUrl), queryParameters: query);
+      return _ok(r);
+    } on DioException catch (e) {
+      return _err(e);
+    }
+  }
 
-    // 🐞 LOG de debug
-    print('📡 POST: $url');
-    print('📦 Body: $body');
-    print('🔐 Token: $token');
-    print('📬 Headers: $headers');
+  static Future<ApiResponse> post(String pathOrUrl, dynamic data,
+      {Map<String, dynamic>? query}) async {
+    try {
+      final r = await _dio.post(_normalize(pathOrUrl),
+          data: data, queryParameters: query);
+      return _ok(r);
+    } on DioException catch (e) {
+      return _err(e);
+    }
+  }
 
-    return await http.post(url, headers: headers, body: body);
+  static Future<ApiResponse> put(String pathOrUrl, dynamic data,
+      {Map<String, dynamic>? query}) async {
+    try {
+      final r = await _dio.put(_normalize(pathOrUrl),
+          data: data, queryParameters: query);
+      return _ok(r);
+    } on DioException catch (e) {
+      return _err(e);
+    }
+  }
+
+  static Future<ApiResponse> delete(String pathOrUrl,
+      {Map<String, dynamic>? query}) async {
+    try {
+      final r =
+          await _dio.delete(_normalize(pathOrUrl), queryParameters: query);
+      return _ok(r);
+    } on DioException catch (e) {
+      return _err(e);
+    }
   }
 }
