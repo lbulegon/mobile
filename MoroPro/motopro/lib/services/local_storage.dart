@@ -29,10 +29,12 @@ class LocalStorage {
   static Future<void> setTokensIfPresent(
       {String? access, String? refresh}) async {
     final p = await SharedPreferences.getInstance();
-    if (access != null && access.isNotEmpty)
+    if (access != null && access.isNotEmpty) {
       await p.setString(_keyAccessToken, access);
-    if (refresh != null && refresh.isNotEmpty)
+    }
+    if (refresh != null && refresh.isNotEmpty) {
       await p.setString(_keyRefreshToken, refresh);
+    }
   }
 
   static Future<String?> getAccessToken() async {

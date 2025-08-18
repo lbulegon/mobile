@@ -24,8 +24,9 @@ class DioClient {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (opt, h) async {
         final t = await LocalStorage.getAccessToken();
-        if (t != null && t.isNotEmpty)
+        if (t != null && t.isNotEmpty) {
           opt.headers['Authorization'] = 'Bearer $t';
+        }
         h.next(opt);
       },
       onResponse: (res, h) {
@@ -93,8 +94,9 @@ class DioClient {
 
   Future<void> _refreshToken() async {
     final refresh = await LocalStorage.getRefreshToken();
-    if (refresh == null || refresh.isEmpty)
+    if (refresh == null || refresh.isEmpty) {
       throw Exception('Sem refresh token');
+    }
     final resp = await _dio.post(
       AppConfig.refreshToken, // ex: /api/v1/token/refresh/
       data: {'refresh': refresh},

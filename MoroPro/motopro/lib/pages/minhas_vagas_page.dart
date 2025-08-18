@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/vagas.dart';
-import '../services/api_vagas.dart';
+import '../services/api_vagas.dart' as vagas_api;
 
 class MinhasVagasPage extends StatefulWidget {
   const MinhasVagasPage({super.key});
@@ -17,12 +17,12 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
   @override
   void initState() {
     super.initState();
-    futureVagas = fetchMinhasVagas();
+    futureVagas = vagas_api.fetchMinhasVagas();
   }
 
   Future<void> _refreshVagas() async {
     setState(() {
-      futureVagas = fetchMinhasVagas();
+      futureVagas = vagas_api.fetchMinhasVagas();
     });
   }
 
@@ -53,20 +53,24 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                     vaga: vaga,
                     onCancelar: () async {
                       try {
-                        await cancelarCandidatura(vaga.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Cancelou candidatura na vaga ${vaga.empresa}'),
-                          ),
-                        );
-                        _refreshVagas();
+                        await vagas_api.cancelarCandidatura(vaga.id);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Cancelou candidatura na vaga ${vaga.empresa}'),
+                            ),
+                          );
+                          _refreshVagas();
+                        }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Erro ao cancelar: $e'),
-                          ),
-                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao cancelar: $e'),
+                            ),
+                          );
+                        }
                       }
                     },
                   );

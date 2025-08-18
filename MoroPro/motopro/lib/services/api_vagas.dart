@@ -54,3 +54,19 @@ Future<void> candidatarVaga({
     }
   }
 }
+
+Future<void> cancelarCandidatura(int vagaId) async {
+  final payload = {
+    "vaga_id": vagaId,
+  };
+  final response = await ApiClient.post(AppConfig.cancelarCandidatura, payload);
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    try {
+      final erro = jsonDecode(response.body);
+      throw Exception(
+          'Erro ao cancelar candidatura: ${erro['detail'] ?? response.body}');
+    } catch (_) {
+      throw Exception('Erro ao cancelar candidatura: ${response.body}');
+    }
+  }
+}
