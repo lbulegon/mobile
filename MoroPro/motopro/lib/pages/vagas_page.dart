@@ -55,6 +55,221 @@ class _VagasPageState extends State<VagasPage> {
     });
   }
 
+  void _mostrarDetalhesVaga(BuildContext context, Vaga vaga) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            bool busy = false;
+            
+            Future<void> candidatarNoPopup() async {
+              setState(() => busy = true);
+              try {
+                // Captura todos os valores da vaga
+                final vagaId = vaga.id;
+                final estabelecimentoId = vaga.estabelecimentoId;
+                final dataISO = vaga.dataISO;
+                final horaInicio = vaga.horaInicio;
+                final horaFim = vaga.horaFim;
+                final empresa = vaga.empresa;
+                
+                debugPrint('🔍 DEBUG - Candidatura via popup para vaga $vagaId ($empresa):');
+                debugPrint('  vagaId: $vagaId');
+                debugPrint('  estabelecimentoId: $estabelecimentoId');
+                debugPrint('  dataISO: $dataISO');
+                debugPrint('  horaInicio: $horaInicio');
+                debugPrint('  horaFim: $horaFim');
+                
+                // Verificação de dados obrigatórios
+                if (vagaId <= 0) {
+                  throw Exception('ID da vaga inválido: $vagaId');
+                }
+                
+                if (estabelecimentoId <= 0) {
+                  throw Exception('ID do estabelecimento inválido: $estabelecimentoId');
+                }
+                
+                if (dataISO.isEmpty) {
+                  throw Exception('Data da vaga está vazia');
+                }
+                
+                if (horaInicio.isEmpty || horaFim.isEmpty) {
+                  throw Exception('Horários da vaga estão vazios');
+                }
+                
+                final motoboyId = await LocalStorage.getMotoboyId();
+                debugPrint('  motoboyId: $motoboyId');
+                
+                if (motoboyId <= 0) {
+                  throw Exception('ID do motoboy inválido: $motoboyId');
+                }
+
+                // Tenta primeiro com método simplificado
+                try {
+                  await vagas_api.candidatarVagaSimples(vagaId);
+                } catch (e) {
+                  debugPrint('⚠️ Fallback para método completo: $e');
+                  // Se falhou, tenta com método completo
+                  await vagas_api.candidatarVaga(
+                    motoboyId: motoboyId,
+                    vagaId: vagaId,
+                    estabelecimentoId: estabelecimentoId,
+                    data: dataISO,
+                    horaInicio: horaInicio,
+                    horaFim: horaFim,
+                  );
+                }
+
+                // Fecha o popup
+                Navigator.of(context).pop();
+                
+                // Mostra mensagem de sucesso
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '✅ Candidatura realizada com sucesso!',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text('🏢 $empresa'),
+                        Text('📅 ${vaga.dia}'),
+                        Text('🕐 ${vaga.hora}'),
+                        SizedBox(height: 8),
+                        Text(
+                          '⚠️ Lembre-se: Você não poderá se candidatar a outra vaga no mesmo período.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                    duration: Duration(seconds: 5),
+                    backgroundColor: Colors.green.shade700,
+                  ),
+                );
+                
+                // Recarrega as vagas
+                await carregarVagas();
+                
+              } catch (e) {
+                debugPrint('❌ ERRO na candidatura via popup: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao candidatar: $e'),
+                    backgroundColor: Colors.red.shade700,
+                  ),
+                );
+              } finally {
+                setState(() => busy = false);
+              }
+            }
+            
+            return AlertDialog(
+              title: Text(
+                'Detalhes da Vaga',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildInfoRow('🏢 Empresa', vaga.empresa),
+                    _buildInfoRow('📍 Local', vaga.local),
+                    _buildInfoRow('📅 Data', vaga.dia),
+                    _buildInfoRow('🕐 Horário', vaga.hora),
+                    _buildInfoRow('👥 Vagas Disponíveis', '${vaga.quantidadeDisponivel}'),
+                    if (vaga.observacao.isNotEmpty)
+                      _buildInfoRow('📝 Observações', vaga.observacao),
+                    SizedBox(height: 16),
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '⚠️ Importante',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '• Você não poderá se candidatar a outra vaga no mesmo período e horário',
+                            style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                          ),
+                          Text(
+                            '• Confirme sua disponibilidade antes de se candidatar',
+                            style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Fechar'),
+                ),
+                ElevatedButton(
+                  onPressed: busy ? null : candidatarNoPopup,
+                  child: busy
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('Candidatar-se'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vagasVisiveis = todasAsVagas
@@ -96,40 +311,20 @@ class _VagasPageState extends State<VagasPage> {
                         itemCount: vagasVisiveis.length,
                         itemBuilder: (context, index) {
                           final vaga = vagasVisiveis[index];
+                          
+                          // DEBUG: Log para verificar se há diferença no primeiro item
+                          debugPrint('🔍 DEBUG - Item $index da lista:');
+                          debugPrint('  vaga.id: ${vaga.id}');
+                          debugPrint('  vaga.empresa: ${vaga.empresa}');
+                          debugPrint('  vaga.dataISO: ${vaga.dataISO}');
+                          debugPrint('  vaga.horaInicio: ${vaga.horaInicio}');
+                          debugPrint('  vaga.horaFim: ${vaga.horaFim}');
+                          debugPrint('  vaga.estabelecimentoId: ${vaga.estabelecimentoId}');
+                          
                           return VagaCard(
                             vaga: vaga,
-                            onCandidatar: () async {
-                              try {
-                                final motoboyId =
-                                    await LocalStorage.getMotoboyId();
-
-                                await vagas_api.candidatarVaga(
-                                  motoboyId: motoboyId,
-                                  estabelecimentoId: vaga.estabelecimentoId,
-                                  data: vaga.dataISO,
-                                  horaInicio: vaga.horaInicio,
-                                  horaFim: vaga.horaFim,
-                                );
-
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Você se candidatou para ${vaga.empresa}',
-                                    ),
-                                  ),
-                                );
-                                await carregarVagas();
-                              } catch (e) {
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Erro ao candidatar: $e'),
-                                  ),
-                                );
-                              }
-                            },
                             onOcultar: () => ocultarVaga(vaga.id),
+                            onVerDetalhes: () => _mostrarDetalhesVaga(context, vaga),
                           );
                         },
                       ),
@@ -140,14 +335,14 @@ class _VagasPageState extends State<VagasPage> {
 
 class VagaCard extends StatefulWidget {
   final Vaga vaga;
-  final Future<void> Function() onCandidatar;
   final VoidCallback onOcultar;
+  final VoidCallback onVerDetalhes;
 
   const VagaCard({
     super.key,
     required this.vaga,
-    required this.onCandidatar,
     required this.onOcultar,
+    required this.onVerDetalhes,
   });
 
   @override
@@ -180,31 +375,19 @@ class _VagaCardState extends State<VagaCard> {
             ),
             const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                OutlinedButton.icon(
+                  onPressed: _busy ? null : widget.onVerDetalhes,
+                  icon: Icon(Icons.info_outline, size: 16),
+                  label: Text('Ver Detalhes'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue.shade700,
+                  ),
+                ),
                 OutlinedButton(
                   onPressed: _busy ? null : widget.onOcultar,
                   child: const Text('Ocultar'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _busy
-                      ? null
-                      : () async {
-                          setState(() => _busy = true);
-                          try {
-                            await widget.onCandidatar();
-                          } finally {
-                            if (mounted) setState(() => _busy = false);
-                          }
-                        },
-                  child: _busy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Candidatar-se'),
                 ),
               ],
             ),

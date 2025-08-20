@@ -78,7 +78,9 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
     if (sucesso && mounted) {
       // Retorna para login após 2 segundos
       Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pop(context);
+        if (mounted) {
+          Navigator.pop(context);
+        }
       });
     }
   }

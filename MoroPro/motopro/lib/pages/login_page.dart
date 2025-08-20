@@ -35,9 +35,11 @@ class _LoginPageState extends State<LoginPage> {
       _senhaController.text.trim(),
     );
 
+    if (!mounted) return;
     setState(() => _carregando = false);
 
     if (loginResult != null) {
+      if (!mounted) return;
       // Atualiza Provider
       context.read<UserProvider>().setUserData(
             id: loginResult.motoboyId,
@@ -47,11 +49,12 @@ class _LoginPageState extends State<LoginPage> {
 
       // DEBUG: Verifica se o token foi salvo
       final tokenSalvo = await LocalStorage.getAccessToken();
-      print('🔐 Token salvo no login: $tokenSalvo');
+      debugPrint('🔐 Token salvo no login: $tokenSalvo');
 
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } else {
+      if (!mounted) return;
       setState(() => _erro = 'E-mail ou senha inválidos');
     }
   }

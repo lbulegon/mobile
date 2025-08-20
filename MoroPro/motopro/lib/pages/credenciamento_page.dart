@@ -59,15 +59,19 @@ class _CredenciamentoPageState extends State<CredenciamentoPage> {
       }),
     );
 
+    if (!mounted) return;
     setState(() => isLoading = false);
 
     if (response.statusCode == 200) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Credenciamento atualizado!')),
       );
+      if (!mounted) return;
       Navigator.pop(context);
     } else {
       final resp = jsonDecode(response.body);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro: ${resp.toString()}')),
       );

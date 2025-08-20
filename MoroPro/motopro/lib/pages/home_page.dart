@@ -33,15 +33,18 @@ class _HomePageState extends State<HomePage> {
   Future<void> logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    await LocalStorage.clearTokens()   ;
+    await LocalStorage.clearTokens();
+    
+    if (!mounted) return;
     context.read<UserProvider>().clearUserData();
 
-   Navigator.pushNamedAndRemoveUntil(
-  context,
-  '/',
-  (_) => false,
-  arguments: {'logout': true},
-);
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/',
+      (_) => false,
+      arguments: {'logout': true},
+    );
   }
 
   @override

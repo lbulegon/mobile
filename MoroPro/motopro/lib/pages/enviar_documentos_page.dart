@@ -53,18 +53,22 @@ class _EnviarDocumentosPageState extends State<EnviarDocumentosPage> {
 
     final response = await request.send();
 
+    if (!mounted) return;
     setState(() {
       isUploading = false;
     });
 
     if (response.statusCode == 200) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Documento enviado com sucesso!')),
       );
+      if (!mounted) return;
       setState(() {
         selectedFile = null;
       });
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro no envio: ${response.statusCode}')),
       );

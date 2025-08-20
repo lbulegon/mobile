@@ -41,16 +41,20 @@ class _ConfirmResetPageState extends State<ConfirmResetPage> {
 
     final sucesso = await confirmarNovaSenha(widget.email, otp, novaSenha);
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (sucesso) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Senha alterada com sucesso!')),
       );
 
+      if (!mounted) return;
       // Redireciona para login
       Navigator.pushReplacementNamed(context, '/login');
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Código inválido ou expirado')),
       );

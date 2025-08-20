@@ -1,5 +1,6 @@
 // lib/services/login_user_service.dart
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:motopro/services/network/dio_client.dart';
 import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/utils/app_config.dart';
@@ -54,9 +55,9 @@ Future<LoginResult?> login(String email, String senha) async {
     await LocalStorage.saveTokens(
         loginResult.accessToken, loginResult.refreshToken);
       
-    print('DEBUG: Tokens salvos: ${loginResult.accessToken}');
-    print('✅ Access salvo: ${loginResult.accessToken.substring(0, 10)}...');
-    print('✅ Refresh salvo: ${loginResult.refreshToken.substring(0, 10)}...');
+    debugPrint('DEBUG: Tokens salvos: ${loginResult.accessToken}');
+    debugPrint('✅ Access salvo: ${loginResult.accessToken.substring(0, 10)}...');
+    debugPrint('✅ Refresh salvo: ${loginResult.refreshToken.substring(0, 10)}...');
 
     // Salvar dados do motoboy
     await LocalStorage.saveMotoboyData(
@@ -68,7 +69,7 @@ Future<LoginResult?> login(String email, String senha) async {
 
     return loginResult;
   } on DioException catch (e) {
-    print('⚠️ Erro login: ${e.response?.statusCode} - ${e.message}');
+    debugPrint('⚠️ Erro login: ${e.response?.statusCode} - ${e.message}');
     if (e.response?.statusCode == 401) {
       return null;
     }

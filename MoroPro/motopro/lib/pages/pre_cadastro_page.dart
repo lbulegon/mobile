@@ -34,13 +34,16 @@ class _PreCadastroPageState extends State<PreCadastroPage> {
       confirmPassword: _confirmarSenhaController.text,
     );
 
+    if (!mounted) return;
     setState(() => isLoading = false);
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(response.message)),
     );
 
     if (response.success) {
+      if (!mounted) return;
       Navigator.pop(context);
     }
   }

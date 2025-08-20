@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLogin() async {
     // Lê token
     final token = await LocalStorage.getAccessToken();
-    print('TOKEN DIRETO 1: $token');
+    debugPrint('TOKEN DIRETO 1: $token');
 
     if (token != null && token.isNotEmpty) {
       // Pega também os dados salvos do motoboy
@@ -29,6 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
       final nome = await LocalStorage.getNome();
       final email = await LocalStorage.getEmail();
 
+      if (!mounted) return;
+      
       // Atualiza o Provider
       context.read<UserProvider>().setUserData(
             id: id,
@@ -36,9 +38,11 @@ class _SplashScreenState extends State<SplashScreen> {
             email: email,
           );
 
+      if (!mounted) return;
       // Vai para Home
       Navigator.pushReplacementNamed(context, '/home');
     } else {
+      if (!mounted) return;
       // Vai para Login
       Navigator.pushReplacementNamed(context, '/login');
     }
