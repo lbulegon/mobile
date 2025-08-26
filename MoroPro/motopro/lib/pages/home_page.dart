@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 //import 'package:motopro/pages/boasvindas_page.dart';
 import 'package:motopro/pages/vagas_page.dart';
+import 'package:motopro/pages/minhas_vagas_page.dart';
 import 'package:motopro/pages/perfil_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:provider/provider.dart';
 import 'package:motopro/providers/user_provider.dart';
-import 'package:motopro/services/session_manager.dart';
+import 'package:motopro/services/local_storage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const HomeContent(),
     const VagasPage(),
+    const MinhasVagasPage(),
     const PerfilPage(),
   ];
 
@@ -66,6 +68,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'Vagas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work),
+            label: 'Minhas Vagas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

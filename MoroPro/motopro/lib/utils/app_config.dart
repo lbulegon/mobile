@@ -15,6 +15,12 @@ class AppConfig {
   static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
   static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
   static const String cancelarCandidatura = '$apiUrl/motoboy-vaga/cancelar/';
+  static const String minhasVagas = '$apiUrl/motoboy-vaga/motoboy/'; // POST com motoboy_id
+  
+  // Endpoints de Operação
+  static const String operacaoIniciar = '$apiUrl/operacao/iniciar/';
+  static const String operacaoAtiva = '$apiUrl/operacao/ativa/';
+  static const String operacaoMinhas = '$apiUrl/operacao/minhas-operacoes/';
 
   static const String passwordReset = '$apiUrl/password/password-reset/';
   static const String passwordResetConfirm =

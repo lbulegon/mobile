@@ -132,7 +132,7 @@ class _VagasPageState extends State<VagasPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '✅ Candidatura realizada com sucesso!',
+                          '✅ Vaga reservada com sucesso!',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 4),
@@ -141,7 +141,7 @@ class _VagasPageState extends State<VagasPage> {
                         Text('🕐 ${vaga.hora}'),
                         SizedBox(height: 8),
                         Text(
-                          '⚠️ Lembre-se: Você não poderá se candidatar a outra vaga no mesmo período.',
+                          '🎯 A vaga está disponível para você iniciar a operação quando chegar a data/hora marcada.',
                           style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
@@ -199,7 +199,7 @@ class _VagasPageState extends State<VagasPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '⚠️ Importante',
+                            '🎯 Como funciona',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blue.shade800,
@@ -207,11 +207,15 @@ class _VagasPageState extends State<VagasPage> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            '• Você não poderá se candidatar a outra vaga no mesmo período e horário',
+                            '• A vaga fica reservada para você automaticamente',
                             style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
                           ),
                           Text(
-                            '• Confirme sua disponibilidade antes de se candidatar',
+                            '• No dia/hora marcada, você pode iniciar a operação',
+                            style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                          ),
+                          Text(
+                            '• Confirme sua disponibilidade antes de reservar',
                             style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
                           ),
                         ],
@@ -233,7 +237,7 @@ class _VagasPageState extends State<VagasPage> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text('Candidatar-se'),
+                      : Text('Reservar Vaga'),
                 ),
               ],
             );

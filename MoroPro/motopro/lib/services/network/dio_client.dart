@@ -23,15 +23,18 @@ class DioClient {
     _dio.interceptors.clear();
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (opt, h) async {
+        print('🔑 DioClient: Requisição para ${opt.uri}');
         final t = await LocalStorage.getAccessToken();
         if (t != null && t.isNotEmpty) {
           opt.headers['Authorization'] = 'Bearer $t';
+          print('🔑 DioClient: Token adicionado ao header');
+        } else {
+          print('🔑 DioClient: Sem token para adicionar');
         }
         h.next(opt);
       },
       onResponse: (res, h) {
-        // debug opcional:
-        // print('✅ ${res.requestOptions.method} ${res.requestOptions.uri} -> ${res.statusCode}');
+        print('🔑 DioClient: Resposta ${res.requestOptions.method} ${res.requestOptions.uri} -> ${res.statusCode}');
         h.next(res);
       },
       onError: (e, h) async {

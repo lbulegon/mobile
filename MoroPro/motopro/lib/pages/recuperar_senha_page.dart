@@ -17,6 +17,8 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
 
   bool _codigoEnviado = false;
   bool _carregando = false;
+  bool _obscureNovaSenha = true;
+  bool _obscureConfirmarSenha = true;
   String? _mensagem;
 
   /// Envia o OTP para o e-mail informado
@@ -122,14 +124,38 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: _novaSenhaController,
-                decoration: const InputDecoration(labelText: 'Nova Senha'),
-                obscureText: true,
+                obscureText: _obscureNovaSenha,
+                decoration: InputDecoration(
+                  labelText: 'Nova Senha',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNovaSenha ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureNovaSenha = !_obscureNovaSenha;
+                      });
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _confirmarSenhaController,
-                decoration: const InputDecoration(labelText: 'Confirmar Senha'),
-                obscureText: true,
+                obscureText: _obscureConfirmarSenha,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Senha',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmarSenha ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmarSenha = !_obscureConfirmarSenha;
+                      });
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               _carregando

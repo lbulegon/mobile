@@ -1,19 +1,16 @@
-//motopro/lib/pages/minhas_vagas_page.dart
 import 'package:flutter/material.dart';
-import 'package:motopro/services/minhas_vagas_service.dart';
+import 'package:motopro/services/minhas_candidaturas_service.dart';
 import 'package:motopro/models/candidatura.dart';
-import 'package:motopro/pages/operacao_page.dart';
-
 import 'package:intl/intl.dart';
 
-class MinhasVagasPage extends StatefulWidget {
-  const MinhasVagasPage({super.key});
+class MinhasCandidaturasPage extends StatefulWidget {
+  const MinhasCandidaturasPage({super.key});
 
   @override
-  State<MinhasVagasPage> createState() => _MinhasVagasPageState();
+  State<MinhasCandidaturasPage> createState() => _MinhasCandidaturasPageState();
 }
 
-class _MinhasVagasPageState extends State<MinhasVagasPage> {
+class _MinhasCandidaturasPageState extends State<MinhasCandidaturasPage> {
   List<Candidatura> _candidaturas = [];
   bool _isLoading = true;
   String? _error;
@@ -21,84 +18,73 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
   @override
   void initState() {
     super.initState();
-    _carregarVagas();
+    _carregarCandidaturas();
   }
 
-  Future<void> _carregarVagas() async {
+  Future<void> _carregarCandidaturas() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final vagasReservadas = await MinhasVagasService.getMinhasVagas();
+      final candidaturas = await MinhasCandidaturasService.getMinhasCandidaturas();
       setState(() {
-        _candidaturas = vagasReservadas;
+        _candidaturas = candidaturas;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _error = 'Erro ao carregar vagas reservadas: $e';
+        _error = 'Erro ao carregar candidaturas: $e';
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _iniciarOperacao(Candidatura candidatura) async {
+  Future<void> _iniciarAtividade(Candidatura candidatura) async {
     try {
-      final operacao = await MinhasVagasService.iniciarOperacao(candidatura.id);
+      await MinhasCandidaturasService.iniciarAtividade(candidatura.id);
+      
+      // Recarrega a lista para atualizar o status
+      await _carregarCandidaturas();
       
       if (!mounted) return;
-      
-      // Navega para a página de operação
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OperacaoPage(operacaoId: operacao.id),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Atividade iniciada com sucesso!'),
+          backgroundColor: Colors.green,
         ),
-      ).then((finalizada) {
-        // Se a operação foi finalizada, recarrega a lista
-        if (finalizada == true) {
-          _carregarVagas();
-        }
-      });
-      
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Erro ao iniciar operação: $e'),
+          content: Text('❌ Erro ao iniciar atividade: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Future<void> _continuarOperacao(Candidatura candidatura) async {
+  Future<void> _finalizarAtividade(Candidatura candidatura) async {
     try {
-      final operacao = await MinhasVagasService.getOperacaoAtiva();
+      await MinhasCandidaturasService.finalizarAtividade(candidatura.id);
       
-      if (operacao != null) {
-        if (!mounted) return;
-        
-        // Navega para a página de operação
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OperacaoPage(operacaoId: operacao.id),
-          ),
-        ).then((finalizada) {
-          // Se a operação foi finalizada, recarrega a lista
-          if (finalizada == true) {
-            _carregarVagas();
-          }
-        });
-      }
+      // Recarrega a lista para atualizar o status
+      await _carregarCandidaturas();
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Atividade finalizada com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Erro ao acessar operação: $e'),
+          content: Text('❌ Erro ao finalizar atividade: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -107,14 +93,16 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
 
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
-      case 'disponivel':
-        return '✅ Disponível';
+      case 'pendente':
+        return '⏳ Pendente';
+      case 'aprovada':
+        return '✅ Aprovada';
+      case 'rejeitada':
+        return '❌ Rejeitada';
       case 'em_andamento':
         return '🔄 Em Andamento';
       case 'finalizada':
         return '🏁 Finalizada';
-      case 'cancelada':
-        return '❌ Cancelada';
       default:
         return status;
     }
@@ -122,20 +110,22 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'disponivel':
+      case 'pendente':
+        return Colors.orange;
+      case 'aprovada':
         return Colors.green;
+      case 'rejeitada':
+        return Colors.red;
       case 'em_andamento':
         return Colors.blue;
       case 'finalizada':
         return Colors.grey;
-      case 'cancelada':
-        return Colors.red;
       default:
         return Colors.grey;
     }
   }
 
-  Widget _buildVagaCard(Candidatura candidatura) {
+  Widget _buildCandidaturaCard(Candidatura candidatura) {
     final dataFormatada = DateFormat('dd/MM/yyyy').format(candidatura.dataVaga);
     final horaFormatada = DateFormat('HH:mm').format(candidatura.horaInicio);
     final horaFimFormatada = DateFormat('HH:mm').format(candidatura.horaFim);
@@ -229,13 +219,13 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
             const SizedBox(height: 12),
             
             // Botões de ação baseados no status
-            if (candidatura.status.toLowerCase() == 'disponivel')
+            if (candidatura.status.toLowerCase() == 'aprovada')
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _iniciarOperacao(candidatura),
+                  onPressed: () => _iniciarAtividade(candidatura),
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text('Iniciar Operação'),
+                  label: const Text('Iniciar Atividade'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -247,11 +237,11 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _continuarOperacao(candidatura),
-                  icon: const Icon(Icons.work),
-                  label: const Text('Continuar Operação'),
+                  onPressed: () => _finalizarAtividade(candidatura),
+                  icon: const Icon(Icons.stop),
+                  label: const Text('Finalizar Atividade'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -266,13 +256,13 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minhas Vagas'),
+        title: const Text('Minhas Candidaturas'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _carregarVagas,
+            onPressed: _carregarCandidaturas,
           ),
         ],
       ),
@@ -295,7 +285,7 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _carregarVagas,
+                        onPressed: _carregarCandidaturas,
                         child: const Text('Tentar Novamente'),
                       ),
                     ],
@@ -308,57 +298,35 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                         children: [
                           Icon(Icons.work_outline, size: 64, color: Colors.grey[400]),
                           const SizedBox(height: 16),
-                                                     Text(
-                             'Você ainda não tem vagas reservadas',
-                             style: TextStyle(
-                               fontSize: 18,
-                               color: Colors.grey[600],
-                             ),
-                           ),
-                           const SizedBox(height: 8),
-                           Text(
-                             'Vá para a aba "Vagas" e reserve uma vaga disponível para começar a trabalhar',
-                             textAlign: TextAlign.center,
-                             style: TextStyle(
-                               fontSize: 14,
-                               color: Colors.grey[500],
-                             ),
-                           ),
-                           const SizedBox(height: 16),
-                           ElevatedButton.icon(
-                             onPressed: () {
-                               // Navega de volta para a home
-                               if (context.mounted) {
-                                 Navigator.of(context).popUntil((route) => route.isFirst);
-                                 // Mostra mensagem para o usuário ir para a aba Vagas
-                                 ScaffoldMessenger.of(context).showSnackBar(
-                                   const SnackBar(
-                                     content: Text('Vá para a aba "Vagas" para ver vagas disponíveis'),
-                                     duration: Duration(seconds: 3),
-                                   ),
-                                 );
-                               }
-                             },
-                             icon: const Icon(Icons.list),
-                             label: const Text('Ver Vagas Disponíveis'),
-                             style: ElevatedButton.styleFrom(
-                               backgroundColor: Theme.of(context).primaryColor,
-                               foregroundColor: Colors.white,
-                             ),
-                           ),
+                          Text(
+                            'Nenhuma candidatura encontrada',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Candidate-se a vagas para ver suas atividades aqui',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                          ),
                         ],
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _carregarVagas,
+                      onRefresh: _carregarCandidaturas,
                       child: ListView.builder(
                         padding: const EdgeInsets.only(top: 8),
                         itemCount: _candidaturas.length,
                         itemBuilder: (context, index) {
-                          return _buildVagaCard(_candidaturas[index]);
+                          return _buildCandidaturaCard(_candidaturas[index]);
                         },
                       ),
                     ),
     );
   }
 }
+
