@@ -81,12 +81,31 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
               ),
-              child: const Text(
-                'MotoPro Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+              child: Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        userProvider.nome ?? 'MotoPro Menu',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        userProvider.email ?? '',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             ListTile(

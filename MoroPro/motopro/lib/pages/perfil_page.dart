@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:motopro/providers/user_provider.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -44,14 +46,22 @@ class PerfilPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Nome e e-mail
-            const Text(
-              'Nome do Usuário',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'usuario@email.com',
-              style: TextStyle(color: Colors.grey),
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                return Column(
+                  children: [
+                    Text(
+                      userProvider.nome ?? 'Nome do Usuário',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      userProvider.email ?? 'usuario@email.com',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                );
+              },
             ),
 
             const SizedBox(height: 32),

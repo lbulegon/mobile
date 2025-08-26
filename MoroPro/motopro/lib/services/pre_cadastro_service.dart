@@ -1,4 +1,6 @@
 // lib/services/pre_cadastro_service.dart
+// ✅ ADAPTADO: Mudança do campo 'nome' para 'full_name' conforme plano de migração
+// O backend agora usa user.full_name em vez do campo nome do motoboy
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:motopro/utils/app_config.dart'; // importa o AppConfig
@@ -25,7 +27,7 @@ Future<PreCadastroResponse> preCadastroMotoboy({
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'nome': nome,
+        'full_name': nome,  // ✅ Mudança: usar full_name em vez de nome
         'cpf': cpf,
         'email': email,
         'telefone': telefone,

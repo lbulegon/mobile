@@ -1,4 +1,6 @@
 // lib/services/login_user_service.dart
+// ✅ ADAPTADO: Suporte para user.full_name conforme plano de migração
+// O backend pode retornar nome diretamente ou dentro de user.full_name
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:motopro/services/network/dio_client.dart';
@@ -45,7 +47,7 @@ Future<LoginResult?> login(String email, String senha) async {
     final loginResult = LoginResult(
       accessToken: response.data['access'],
       refreshToken: response.data['refresh'],
-      nome: response.data['nome'] ?? '',
+      nome: response.data['nome'] ?? response.data['user']?['full_name'] ?? '',  // ✅ Fallback para user.full_name
       email: response.data['email'] ?? '',
       telefone: response.data['telefone'] ?? '',
       motoboyId: response.data['motoboy_id'] ?? 0,
