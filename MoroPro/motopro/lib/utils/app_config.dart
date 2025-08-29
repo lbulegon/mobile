@@ -15,7 +15,7 @@ class AppConfig {
   static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
   static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
   static const String cancelarCandidatura = '$apiUrl/motoboy-vaga/cancelar/';
-  static const String minhasVagas = '$apiUrl/motoboy-vaga/motoboy/'; // POST com motoboy_id
+  static const String minhasVagas = '$apiUrl/motoboy-vaga/minhas-vagas/'; // Endpoint correto
   
   // Endpoints de Operação
   static const String operacaoIniciar = '$apiUrl/operacao/iniciar/';

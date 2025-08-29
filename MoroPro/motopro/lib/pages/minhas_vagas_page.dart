@@ -1,9 +1,8 @@
 //motopro/lib/pages/minhas_vagas_page.dart
 import 'package:flutter/material.dart';
-import 'package:motopro/services/minhas_vagas_service.dart';
 import 'package:motopro/models/candidatura.dart';
+import 'package:motopro/services/minhas_vagas_service.dart';
 import 'package:motopro/pages/operacao_page.dart';
-
 import 'package:intl/intl.dart';
 
 class MinhasVagasPage extends StatefulWidget {
@@ -14,9 +13,9 @@ class MinhasVagasPage extends StatefulWidget {
 }
 
 class _MinhasVagasPageState extends State<MinhasVagasPage> {
-  List<Candidatura> _candidaturas = [];
-  bool _isLoading = true;
-  String? _error;
+  List<Candidatura> _vagas = [];
+  bool _carregando = true;
+  String? _erro;
 
   @override
   void initState() {
@@ -26,48 +25,65 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
 
   Future<void> _carregarVagas() async {
     setState(() {
-      _isLoading = true;
-      _error = null;
+      _carregando = true;
+      _erro = null;
     });
 
     try {
-      final vagasReservadas = await MinhasVagasService.getMinhasVagas();
+      debugPrint('[MinhasVagasPage] Iniciando carregamento das vagas...');
+      final vagas = await MinhasVagasService.getMinhasVagas();
+      
+      debugPrint('[MinhasVagasPage] Vagas carregadas: ${vagas.length}');
+      
       setState(() {
-        _candidaturas = vagasReservadas;
-        _isLoading = false;
+        _vagas = vagas;
+        _carregando = false;
       });
     } catch (e) {
+      debugPrint('[MinhasVagasPage] Erro ao carregar vagas: $e');
       setState(() {
-        _error = 'Erro ao carregar vagas reservadas: $e';
-        _isLoading = false;
+        _erro = 'Erro ao carregar vagas: $e';
+        _carregando = false;
       });
     }
   }
 
   Future<void> _iniciarOperacao(Candidatura candidatura) async {
     try {
-      final operacao = await MinhasVagasService.iniciarOperacao(candidatura.id);
+      debugPrint('[MinhasVagasPage] Iniciando operação para vaga ${candidatura.id}');
       
-      if (!mounted) return;
+      final sucesso = await MinhasVagasService.iniciarOperacao(candidatura.id);
       
-      // Navega para a página de operação
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OperacaoPage(operacaoId: operacao.id),
-        ),
-      ).then((finalizada) {
-        // Se a operação foi finalizada, recarrega a lista
-        if (finalizada == true) {
-          _carregarVagas();
-        }
-      });
-      
+      if (sucesso) {
+        debugPrint('[MinhasVagasPage] Operação iniciada com sucesso');
+        
+        if (!mounted) return;
+        
+        // Navega para a página de operação
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OperacaoPage(operacaoId: candidatura.id),
+          ),
+        );
+      } else {
+        debugPrint('[MinhasVagasPage] Falha ao iniciar operação');
+        if (!mounted) return;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao iniciar operação. Tente novamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
+      debugPrint('[MinhasVagasPage] Erro ao iniciar operação: $e');
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Erro ao iniciar operação: $e'),
+          content: Text('Erro: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -76,190 +92,26 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
 
   Future<void> _continuarOperacao(Candidatura candidatura) async {
     try {
-      final operacao = await MinhasVagasService.getOperacaoAtiva();
+      debugPrint('[MinhasVagasPage] Continuando operação para vaga ${candidatura.id}');
       
-      if (operacao != null) {
-        if (!mounted) return;
-        
-        // Navega para a página de operação
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OperacaoPage(operacaoId: operacao.id),
-          ),
-        ).then((finalizada) {
-          // Se a operação foi finalizada, recarrega a lista
-          if (finalizada == true) {
-            _carregarVagas();
-          }
-        });
-      }
+      // Navega diretamente para a página de operação
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OperacaoPage(operacaoId: candidatura.id),
+        ),
+      );
     } catch (e) {
+      debugPrint('[MinhasVagasPage] Erro ao continuar operação: $e');
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Erro ao acessar operação: $e'),
+          content: Text('Erro: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
-  }
-
-  String _getStatusText(String status) {
-    switch (status.toLowerCase()) {
-      case 'disponivel':
-        return '✅ Disponível';
-      case 'em_andamento':
-        return '🔄 Em Andamento';
-      case 'finalizada':
-        return '🏁 Finalizada';
-      case 'cancelada':
-        return '❌ Cancelada';
-      default:
-        return status;
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'disponivel':
-        return Colors.green;
-      case 'em_andamento':
-        return Colors.blue;
-      case 'finalizada':
-        return Colors.grey;
-      case 'cancelada':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  Widget _buildVagaCard(Candidatura candidatura) {
-    final dataFormatada = DateFormat('dd/MM/yyyy').format(candidatura.dataVaga);
-    final horaFormatada = DateFormat('HH:mm').format(candidatura.horaInicio);
-    final horaFimFormatada = DateFormat('HH:mm').format(candidatura.horaFim);
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    candidatura.estabelecimento,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(candidatura.status),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getStatusText(candidatura.status),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              candidatura.endereco,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  'Data: $dataFormatada',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  'Horário: $horaFormatada - $horaFimFormatada',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.attach_money, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  'Valor: R\$ ${candidatura.valor.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            
-            // Botões de ação baseados no status
-            if (candidatura.status.toLowerCase() == 'disponivel')
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _iniciarOperacao(candidatura),
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Iniciar Operação'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
-            
-            if (candidatura.status.toLowerCase() == 'em_andamento')
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _continuarOperacao(candidatura),
-                  icon: const Icon(Icons.work),
-                  label: const Text('Continuar Operação'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -267,8 +119,6 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Minhas Vagas'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -276,22 +126,17 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
           ),
         ],
       ),
-      body: _isLoading
+      body: _carregando
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
+          : _erro != null
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
                       Text(
-                        _error!,
+                        'Erro: $_erro',
+                        style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
@@ -301,64 +146,202 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                     ],
                   ),
                 )
-              : _candidaturas.isEmpty
+              : _vagas.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.work_outline, size: 64, color: Colors.grey[400]),
+                          const Icon(
+                            Icons.work_outline,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(height: 16),
-                                                     Text(
-                             'Você ainda não tem vagas reservadas',
-                             style: TextStyle(
-                               fontSize: 18,
-                               color: Colors.grey[600],
-                             ),
-                           ),
-                           const SizedBox(height: 8),
-                           Text(
-                             'Vá para a aba "Vagas" e reserve uma vaga disponível para começar a trabalhar',
-                             textAlign: TextAlign.center,
-                             style: TextStyle(
-                               fontSize: 14,
-                               color: Colors.grey[500],
-                             ),
-                           ),
-                           const SizedBox(height: 16),
-                           ElevatedButton.icon(
-                             onPressed: () {
-                               // Navega de volta para a home
-                               if (context.mounted) {
-                                 Navigator.of(context).popUntil((route) => route.isFirst);
-                                 // Mostra mensagem para o usuário ir para a aba Vagas
-                                 ScaffoldMessenger.of(context).showSnackBar(
-                                   const SnackBar(
-                                     content: Text('Vá para a aba "Vagas" para ver vagas disponíveis'),
-                                     duration: Duration(seconds: 3),
-                                   ),
-                                 );
-                               }
-                             },
-                             icon: const Icon(Icons.list),
-                             label: const Text('Ver Vagas Disponíveis'),
-                             style: ElevatedButton.styleFrom(
-                               backgroundColor: Theme.of(context).primaryColor,
-                               foregroundColor: Colors.white,
-                             ),
-                           ),
+                          const Text(
+                            'Nenhuma vaga futura encontrada',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Você não tem vagas reservadas a partir de hoje.\nReserve uma vaga na aba "Vagas" para começar.',
+                            style: TextStyle(color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              // Navega para a aba de Vagas
+                              Navigator.pop(context);
+                              // Mostra mensagem para o usuário
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Navegue para a aba "Vagas" para ver vagas disponíveis'),
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.search),
+                            label: const Text('Ver Vagas Disponíveis'),
+                          ),
                         ],
                       ),
                     )
                   : RefreshIndicator(
                       onRefresh: _carregarVagas,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(top: 8),
-                        itemCount: _candidaturas.length,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _vagas.length,
                         itemBuilder: (context, index) {
-                          return _buildVagaCard(_candidaturas[index]);
+                          final candidatura = _vagas[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            elevation: 2,
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header com estabelecimento
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.business,
+                                        color: Colors.blue.shade700,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          candidatura.estabelecimento,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  const SizedBox(height: 8),
+                                  
+                                  // Endereço
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          candidatura.endereco,
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 14,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  const SizedBox(height: 12),
+                                  
+                                  // Data e horário em linha
+                                  Row(
+                                    children: [
+                                      // Data
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.calendar_today,
+                                              size: 16,
+                                              color: Colors.green.shade700,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              DateFormat('dd/MM/yyyy').format(candidatura.dataVaga),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      
+                                      // Horário
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 16,
+                                              color: Colors.orange.shade700,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '${DateFormat('HH:mm').format(candidatura.horaInicio)} - ${DateFormat('HH:mm').format(candidatura.horaFim)}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  const SizedBox(height: 16),
+                                  
+                                  // Botão de ação
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _iniciarOperacao(candidatura),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue.shade600,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        elevation: 1,
+                                      ),
+                                      icon: const Icon(Icons.play_arrow, size: 18),
+                                      label: const Text(
+                                        'Iniciar Operação',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
     );
   }
+
+
 }

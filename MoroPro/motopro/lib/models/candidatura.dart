@@ -23,16 +23,32 @@ class Candidatura {
 
   factory Candidatura.fromJson(Map<String, dynamic> json) {
     return Candidatura(
-      id: json['id'],
-      estabelecimento: json['estabelecimento'],
+      id: json['alocacao_id'] ?? json['id'],
+      estabelecimento: json['empresa'] ?? json['estabelecimento'],
       endereco: json['endereco'],
-      dataVaga: DateTime.parse(json['data_vaga']),
-      horaInicio: DateTime.parse(json['hora_inicio']),
-      horaFim: DateTime.parse(json['hora_fim']),
-      valor: json['valor'].toDouble(),
+      dataVaga: _parseData(json['data']),
+      horaInicio: _parseHora(json['inicio']),
+      horaFim: _parseHora(json['fim']),
+      valor: (json['valor_vaga'] ?? 0.0).toDouble(),
       status: json['status'],
-      dataCandidatura: DateTime.parse(json['data_candidatura']),
+      dataCandidatura: DateTime.now(), // Campo não disponível na resposta
     );
+  }
+
+  static DateTime _parseData(String data) {
+    // Formato: "22/08/2025" ou "2025-08-22"
+    if (data.contains('/')) {
+      final parts = data.split('/');
+      return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+    }
+    return DateTime.parse(data);
+  }
+
+  static DateTime _parseHora(String hora) {
+    // Formato: "18:00" ou "18:00:00"
+    final parts = hora.split(':');
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]));
   }
 
   Map<String, dynamic> toJson() {

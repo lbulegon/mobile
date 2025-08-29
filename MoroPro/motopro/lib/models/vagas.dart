@@ -62,7 +62,7 @@ class Vaga {
     return Vaga(
       id: json['id'] ?? 0,
       empresa: json['estabelecimento_nome'] ?? 'Desconhecido',
-      local: 'Local não informado',
+      local: json['estabelecimento_endereco'] ?? 'Endereço não informado',
       dia: diaFormatado,
       hora: horaFormatada,
       observacao: '',
