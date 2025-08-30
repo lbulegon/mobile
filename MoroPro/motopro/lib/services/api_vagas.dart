@@ -1,148 +1,51 @@
 // lib/services/api_vagas.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import 'package:motopro/models/vagas.dart';
-import 'package:motopro/services/api_client.dart';
+import 'package:motopro/services/network/dio_client.dart';
 import 'package:motopro/utils/app_config.dart';
-import 'package:motopro/utils/date_utils.dart';
 
-// Função auxiliar para formatar horário corretamente
-String formatarHora(String hora) {
-  if (hora == '00:00') {
-    return '00:00:00'; // Mantém a virada de meia-noite
-  }
-  return '$hora:00'; // Adiciona segundos
-}
-
-Future<List<Vaga>> fetchVagas() async {
-  final response = await ApiClient.get('/vagas/', query: {'status': 'aberta'});
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final list = (data is List) ? data : (data['results'] ?? []);
-    return List.from(list).map((v) => Vaga.fromJson(v)).toList();
-  } else {
-    throw Exception(
-        'Erro ao buscar vagas: ${response.statusCode} — ${response.body}');
-  }
-}
-
-Future<List<Vaga>> fetchMinhasVagas() async {
-  final response = await ApiClient.get('/vagas/minhas-vagas/');
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final list = (data is List) ? data : (data['results'] ?? []);
-    return List.from(list).map((v) => Vaga.fromJson(v)).toList();
-  } else {
-    throw Exception(
-        'Erro ao buscar suas vagas: ${response.statusCode} — ${response.body}');
-  }
-}
-
-Future<void> candidatarVaga({
-  required int motoboyId,
-  required int vagaId,
-  required int estabelecimentoId,
-  required String data,
-  required String horaInicio,
-  required String horaFim,
-}) async {
-  // Tenta APENAS com vaga_id (método mais simples e direto)
-  final payload = {
-    "vaga_id": vagaId,
-  };
-  
-  // DEBUG: Log do payload
-  debugPrint('🔍 DEBUG - Payload candidatura:');
-  debugPrint('  vaga_id: $vagaId');
-  debugPrint('  payload: $payload');
-  
-  final response = await ApiClient.post(AppConfig.candidatar, payload);
-  
-  // DEBUG: Log da resposta
-  debugPrint('🔍 DEBUG - Resposta do servidor:');
-  debugPrint('  status: ${response.statusCode}');
-  debugPrint('  body: ${response.body}');
-  
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    debugPrint('✅ Sucesso na candidatura!');
-    return;
-  }
-  
-  // Se falhou, tenta com payload completo como fallback
-  debugPrint('⚠️ Fallback para payload completo...');
-  
-  final payloadCompleto = {
-    "motoboy": motoboyId,
-    "vaga_id": vagaId,
-    "estabelecimento": estabelecimentoId,
-    "data": formatarDataISO(data),
-    "hora_inicio": formatarHora(horaInicio),
-    "hora_fim": formatarHora(horaFim),
-  };
-  
-  debugPrint('🔍 DEBUG - Horários formatados:');
-  debugPrint('  hora_inicio: ${formatarHora(horaInicio)}');
-  debugPrint('  hora_fim: ${formatarHora(horaFim)}');
-  
-  debugPrint('🔍 DEBUG - Payload completo:');
-  debugPrint('  payload: $payloadCompleto');
-  
-  final responseCompleto = await ApiClient.post(AppConfig.candidatar, payloadCompleto);
-  
-  debugPrint('🔍 DEBUG - Resposta payload completo:');
-  debugPrint('  status: ${responseCompleto.statusCode}');
-  debugPrint('  body: ${responseCompleto.body}');
-  
-  if (responseCompleto.statusCode != 200 && responseCompleto.statusCode != 201) {
+class ApiVagas {
+  static Future<List<Vaga>> getVagasDisponiveis() async {
     try {
-      final erro = jsonDecode(responseCompleto.body);
-      throw Exception(
-          'Erro ao candidatar-se: ${erro['detail'] ?? responseCompleto.body}');
-    } catch (_) {
-      throw Exception('Erro ao candidatar-se: ${responseCompleto.body}');
+      final response = await DioClient.dio.get(AppConfig.vagasDisponiveis);
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final vagas = data.map((json) => Vaga.fromJson(json)).toList();
+        
+        // Debug simples - verificar vagas do dia 30
+        print('🔍 DEBUG: ${vagas.length} vagas carregadas');
+        for (int i = 0; i < vagas.length; i++) {
+          final vaga = vagas[i];
+          print('  Vaga $i: ID=${vaga.id}, Empresa="${vaga.empresa}", Dia="${vaga.dia}"');
+          if (vaga.dia.contains('30')) {
+            print('🎯 VAGA DO DIA 30 ENCONTRADA! ID=${vaga.id}');
+          }
+        }
+        
+        return vagas;
+      } else {
+        throw Exception('Erro ao carregar vagas: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar vagas: $e');
     }
   }
-}
 
-Future<void> cancelarCandidatura(int vagaId) async {
-  final payload = {
-    "vaga_id": vagaId,
-  };
-  final response = await ApiClient.post(AppConfig.cancelarCandidatura, payload);
-  if (response.statusCode != 200 && response.statusCode != 204) {
+  static Future<bool> candidatarVaga(int motoboyId, int vagaId) async {
     try {
-      final erro = jsonDecode(response.body);
-      throw Exception(
-          'Erro ao cancelar candidatura: ${erro['detail'] ?? response.body}');
-    } catch (_) {
-      throw Exception('Erro ao cancelar candidatura: ${response.body}');
+      final response = await DioClient.dio.post(
+        AppConfig.candidatar,
+        data: {
+          'motoboy_id': motoboyId,
+          'vaga_id': vagaId,
+        },
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      return false;
     }
   }
-}
-
-// Método simplificado que tenta candidatar apenas com o ID da vaga
-Future<void> candidatarVagaSimples(int vagaId) async {
-  debugPrint('🔍 DEBUG - Candidatura simples para vaga: $vagaId');
-  
-  final payload = {
-    "vaga_id": vagaId,
-  };
-  
-  final response = await ApiClient.post(AppConfig.candidatar, payload);
-  
-  debugPrint('🔍 DEBUG - Resposta candidatura simples:');
-  debugPrint('  status: ${response.statusCode}');
-  debugPrint('  body: ${response.body}');
-  
-  if (response.statusCode != 200 && response.statusCode != 201) {
-    try {
-      final erro = jsonDecode(response.body);
-      throw Exception(
-          'Erro ao candidatar-se: ${erro['detail'] ?? response.body}');
-    } catch (_) {
-      throw Exception('Erro ao candidatar-se: ${response.body}');
-    }
-  }
-  
-  debugPrint('✅ Sucesso na candidatura simples!');
 }
