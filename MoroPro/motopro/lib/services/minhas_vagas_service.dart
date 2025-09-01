@@ -31,15 +31,23 @@ class MinhasVagasService {
         
         // Filtrar apenas vagas a partir da data atual
         final vagasFiltradas = alocacoes.where((json) {
-          final candidatura = Candidatura.fromJson(json);
-          final hoje = DateTime.now();
-          final dataVaga = candidatura.dataVaga;
-          
-          // Comparar apenas a data (ignorar hora)
-          final hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
-          final dataVagaSemHora = DateTime(dataVaga.year, dataVaga.month, dataVaga.day);
-          
-          return dataVagaSemHora.isAfter(hojeSemHora) || dataVagaSemHora.isAtSameMomentAs(hojeSemHora);
+          try {
+            final candidatura = Candidatura.fromJson(json);
+            final hoje = DateTime.now();
+            final dataVaga = candidatura.dataVaga;
+            
+            // Comparar apenas a data (ignorar hora)
+            final hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
+            final dataVagaSemHora = DateTime(dataVaga.year, dataVaga.month, dataVaga.day);
+            
+            final isFutura = dataVagaSemHora.isAfter(hojeSemHora) || dataVagaSemHora.isAtSameMomentAs(hojeSemHora);
+            debugPrint('[DEBUG] Vaga ${candidatura.id} - Data: $dataVagaSemHora, Hoje: $hojeSemHora, É futura: $isFutura');
+            
+            return isFutura;
+          } catch (e) {
+            debugPrint('[ERROR] Erro ao processar vaga: $e');
+            return false;
+          }
         }).toList();
         
         debugPrint('[INFO] Vagas filtradas (a partir de hoje): ${vagasFiltradas.length}');

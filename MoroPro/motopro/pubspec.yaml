@@ -1,6 +1,6 @@
 name: motopro
 description: "A new Flutter project."
-publish_to: 'none'
+# publish_to: 'none' # Removido para permitir publicação
 
 version: 1.0.0+1
 

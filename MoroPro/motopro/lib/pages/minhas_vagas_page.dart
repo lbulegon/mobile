@@ -174,13 +174,12 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                           const SizedBox(height: 24),
                           ElevatedButton.icon(
                             onPressed: () {
-                              // Navega para a aba de Vagas
                               Navigator.pop(context);
-                              // Mostra mensagem para o usuário
+                              // Mostra mensagem para navegar para Vagas
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Navegue para a aba "Vagas" para ver vagas disponíveis'),
-                                  duration: Duration(seconds: 3),
+                                  content: Text('Toque na aba "Vagas" para ver vagas disponíveis'),
+                                  duration: Duration(seconds: 2),
                                 ),
                               );
                             },
@@ -342,6 +341,4 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                     ),
     );
   }
-
-
 }

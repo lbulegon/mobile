@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.motopro">
+    package="com.motopro.app">
 
     <!-- ✅ Permissão necessária para acesso à internet -->
     <uses-permission android:name="android.permission.INTERNET"/>

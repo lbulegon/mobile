@@ -22,18 +22,38 @@ class _VagasPageState extends State<VagasPage> {
   }
 
   Future<void> _carregarVagas() async {
+    print('🔍 DEBUG: _carregarVagas iniciado');
+    
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final vagas = await fetchVagas();
+      print('🔍 DEBUG: Iniciando carregamento de vagas...');
+      final vagas = await ApiVagas.getVagasDisponiveis();
+      print('🔍 DEBUG: Vagas carregadas com sucesso: ${vagas.length}');
+      
+      if (!mounted) {
+        print('🔍 DEBUG: Widget não está mais montado, abortando setState');
+        return;
+      }
+      
       setState(() {
+        print('🔍 DEBUG: Executando setState com ${vagas.length} vagas');
         _vagas = vagas;
         _isLoading = false;
       });
+      
+      print('🔍 DEBUG: setState concluído');
     } catch (e) {
+      print('🔍 DEBUG: Erro na página de vagas: $e');
+      
+      if (!mounted) {
+        print('🔍 DEBUG: Widget não está mais montado, abortando setState de erro');
+        return;
+      }
+      
       setState(() {
         _error = 'Erro ao carregar vagas: $e';
         _isLoading = false;
@@ -43,14 +63,10 @@ class _VagasPageState extends State<VagasPage> {
 
   Future<void> _candidatarVaga(Vaga vaga) async {
     try {
-      await candidatarVaga(
-        motoboyId: 18, // TODO: Pegar do LocalStorage
-        vagaId: vaga.id,
-        estabelecimentoId: vaga.estabelecimentoId,
-        data: vaga.dataISO,
-        horaInicio: vaga.horaInicio,
-        horaFim: vaga.horaFim,
-      );
+      final success = await ApiVagas.candidatarVaga(18, vaga.id);
+      if (!success) {
+        throw Exception('Falha ao candidatar vaga');
+      }
       
       // Fecha o popup
       Navigator.of(context).pop();
@@ -108,6 +124,14 @@ class _VagasPageState extends State<VagasPage> {
       
       // Recarrega as vagas
       await _carregarVagas();
+      
+      // Mostra mensagem para navegar para Minhas Vagas
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vaga reservada! Toque na aba "Minhas Vagas" para ver suas reservas'),
+          duration: Duration(seconds: 3),
+        ),
+      );
       
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,21 +211,22 @@ class _VagasPageState extends State<VagasPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Carregando vagas...'),
-          ],
-        ),
-      );
-    }
+    try {
+      if (_isLoading) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Carregando vagas...'),
+            ],
+          ),
+        );
+      }
 
-    if (_error != null) {
-      return Center(
+          if (_error != null) {
+        return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -223,8 +248,8 @@ class _VagasPageState extends State<VagasPage> {
       );
     }
 
-    if (_vagas.isEmpty) {
-      return Center(
+          if (_vagas.isEmpty) {
+        return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -379,8 +404,45 @@ class _VagasPageState extends State<VagasPage> {
                ),
              ),
            );
-         },
-       ),
-     );
+                   },
+        ),
+      );
+    } catch (e) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Vagas Disponíveis'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                'Erro ao carregar página',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Erro: $e',
+                style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _error = null;
+                  });
+                  _carregarVagas();
+                },
+                child: Text('Tentar Novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }

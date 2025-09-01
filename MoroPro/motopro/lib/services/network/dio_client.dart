@@ -22,16 +22,16 @@ class DioClient {
   Dio _build() {
     _dio.interceptors.clear();
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (opt, h) async {
-        print('🔑 DioClient: Requisição para ${opt.uri}');
-        final t = await LocalStorage.getAccessToken();
-        if (t != null && t.isNotEmpty) {
-          opt.headers['Authorization'] = 'Bearer $t';
-          print('🔑 DioClient: Token adicionado ao header');
-        } else {
-          print('🔑 DioClient: Sem token para adicionar');
-        }
-        h.next(opt);
+                          onRequest: (opt, h) async {
+                      print('🔑 DioClient: Requisição para ${opt.uri}');
+                      final t = await LocalStorage.getAccessToken();
+                      if (t != null && t.isNotEmpty) {
+                        opt.headers['Authorization'] = 'Bearer $t';
+                        print('🔑 DioClient: Token adicionado ao header');
+                      } else {
+                        print('🔑 DioClient: Sem token para adicionar');
+                      }
+                      h.next(opt);
       },
       onResponse: (res, h) {
         print('🔑 DioClient: Resposta ${res.requestOptions.method} ${res.requestOptions.uri} -> ${res.statusCode}');
@@ -96,24 +96,42 @@ class DioClient {
   }
 
   Future<void> _refreshToken() async {
+    print('🔑 DioClient: Tentando refresh token...');
     final refresh = await LocalStorage.getRefreshToken();
     if (refresh == null || refresh.isEmpty) {
+      print('🔑 DioClient: Sem refresh token disponível');
       throw Exception('Sem refresh token');
     }
-    final resp = await _dio.post(
-      AppConfig.refreshToken, // ex: /api/v1/token/refresh/
-      data: {'refresh': refresh},
-      options: Options(headers: {'Authorization': null}),
-    );
-    final newAccess = resp.data['access'] ?? resp.data['access_token'];
-    final newRefresh = resp.data['refresh'] ?? resp.data['refresh_token'];
-    if (newAccess == null || (newAccess is String && newAccess.isEmpty)) {
-      throw Exception('Refresh não retornou access token');
+    
+    print('🔑 DioClient: Refresh token encontrado, fazendo requisição...');
+    try {
+      final resp = await _dio.post(
+        AppConfig.refreshToken,
+        data: {'refresh': refresh},
+        options: Options(headers: {'Authorization': null}),
+      );
+      
+      print('🔑 DioClient: Refresh response status: ${resp.statusCode}');
+      print('🔑 DioClient: Refresh response data: ${resp.data}');
+      
+      final newAccess = resp.data['access'] ?? resp.data['access_token'];
+      final newRefresh = resp.data['refresh'] ?? resp.data['refresh_token'];
+      
+      if (newAccess == null || (newAccess is String && newAccess.isEmpty)) {
+        print('🔑 DioClient: Refresh não retornou access token');
+        throw Exception('Refresh não retornou access token');
+      }
+      
+      print('🔑 DioClient: Salvando novos tokens...');
+      await LocalStorage.setTokensIfPresent(
+        access: newAccess is String ? newAccess : null,
+        refresh: newRefresh is String ? newRefresh : null,
+      );
+      print('🔑 DioClient: Tokens salvos com sucesso');
+    } catch (e) {
+      print('🔑 DioClient: Erro no refresh: $e');
+      rethrow;
     }
-    await LocalStorage.setTokensIfPresent(
-      access: newAccess is String ? newAccess : null,
-      refresh: newRefresh is String ? newRefresh : null,
-    );
   }
 }
 

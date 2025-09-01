@@ -1,4 +1,4 @@
-package com.example.motopro
+package com.motopro.app
 
 import io.flutter.embedding.android.FlutterActivity
 

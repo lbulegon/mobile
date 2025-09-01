@@ -35,16 +35,19 @@ class ApiVagas {
 
   static Future<bool> candidatarVaga(int motoboyId, int vagaId) async {
     try {
+      print('🔍 DEBUG: Candidatando vaga - Motoboy: $motoboyId, Vaga: $vagaId');
+      
       final response = await DioClient.dio.post(
         AppConfig.candidatar,
         data: {
-          'motoboy_id': motoboyId,
           'vaga_id': vagaId,
         },
       );
 
+      print('🔍 DEBUG: Resposta candidatura - Status: ${response.statusCode}');
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
+      print('🔍 DEBUG: Erro ao candidatar: $e');
       return false;
     }
   }

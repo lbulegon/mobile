@@ -12,10 +12,10 @@ class AppConfig {
 
   // Outros endpoints
   static const String preCadastro = '$apiUrl/motoboy/pre-cadastro/';
-  static const String vagasDisponiveis = '$apiUrl/vagas/disponiveis/';
+  static const String vagasDisponiveis = '$apiUrl/vagas/';
   static const String candidatar = '$apiUrl/motoboy-vaga/candidatar/';
   static const String cancelarCandidatura = '$apiUrl/motoboy-vaga/cancelar/';
-  static const String minhasVagas = '$apiUrl/motoboy-vaga/minhas-vagas/'; // Endpoint correto
+  static const String minhasVagas = '$apiUrl/motoboy-vaga/minhas-vagas/';
   
   // Endpoints de Operação
   static const String operacaoIniciar = '$apiUrl/operacao/iniciar/';
