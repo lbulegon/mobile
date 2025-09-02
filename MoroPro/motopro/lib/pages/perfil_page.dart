@@ -57,7 +57,7 @@ class PerfilPage extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       userProvider.email ?? 'usuario@email.com',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                     ),
                   ],
                 );

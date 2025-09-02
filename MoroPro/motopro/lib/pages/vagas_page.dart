@@ -147,7 +147,7 @@ class _VagasPageState extends State<VagasPage> {
     showDialog(
       context: context,
       builder: (context) => SimpleDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -156,49 +156,49 @@ class _VagasPageState extends State<VagasPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 8),
-                Text('📍 ${vaga.local}', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
-                Text('📅 ${vaga.dia}', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
-                Text('🕐 ${vaga.hora}', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
-                Text('👥 ${vaga.quantidadeDisponivel} vagas disponíveis', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 8),
+                Text('📍 ${vaga.local}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                const SizedBox(height: 8),
+                Text('📅 ${vaga.dia}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                const SizedBox(height: 8),
+                Text('🕐 ${vaga.hora}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                const SizedBox(height: 8),
+                Text('👥 ${vaga.quantidadeDisponivel} vagas disponíveis', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                 if (vaga.observacao.isNotEmpty) ...[
-                  SizedBox(height: 8),
-                  Text('📝 ${vaga.observacao}', style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 8),
+                  Text('📝 ${vaga.observacao}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                 ],
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Cancelar'),
+                        child: const Text('Cancelar'),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                           _candidatarVaga(vaga);
                         },
-                        child: Text('Reservar'),
+                        child: const Text('Reservar'),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -211,9 +211,24 @@ class _VagasPageState extends State<VagasPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Vagas Disponíveis'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _carregarVagas,
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     try {
       if (_isLoading) {
-        return Center(
+        return const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -225,222 +240,214 @@ class _VagasPageState extends State<VagasPage> {
         );
       }
 
-          if (_error != null) {
+      if (_error != null) {
         return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error, size: 64, color: Colors.red),
-            SizedBox(height: 16),
-            Text(
-              'Erro ao carregar vagas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(_error!),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _carregarVagas,
-              child: Text('Tentar Novamente'),
-            ),
-          ],
-        ),
-      );
-    }
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Erro ao carregar vagas',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(_error!),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _carregarVagas,
+                child: const Text('Tentar Novamente'),
+              ),
+            ],
+          ),
+        );
+      }
 
-          if (_vagas.isEmpty) {
+      if (_vagas.isEmpty) {
         return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.work_off, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Nenhuma vaga disponível',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('Não há vagas abertas no momento'),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _carregarVagas,
-              child: Text('Atualizar'),
-            ),
-          ],
-        ),
-      );
-    }
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.work_off, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Nenhuma vaga disponível',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('Não há vagas abertas no momento'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _carregarVagas,
+                child: const Text('Atualizar'),
+              ),
+            ],
+          ),
+        );
+      }
 
-         return RefreshIndicator(
-       onRefresh: _carregarVagas,
-       child: ListView.builder(
-         padding: EdgeInsets.all(16),
-         itemCount: _vagas.length,
-         itemBuilder: (context, index) {
-           final vaga = _vagas[index];
-                       return Card(
-              margin: EdgeInsets.only(bottom: 16),
+      return RefreshIndicator(
+        onRefresh: _carregarVagas,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _vagas.length,
+          itemBuilder: (context, index) {
+            final vaga = _vagas[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 16),
               elevation: 2,
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-               padding: EdgeInsets.all(16),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   // Nome do estabelecimento
-                                       Text(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nome do estabelecimento
+                    Text(
                       vaga.empresa,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: Colors.black,
                       ),
                     ),
-                   
-                   SizedBox(height: 8),
-                   
-                   // Endereço
-                   Row(
-                     children: [
-                       Icon(
-                         Icons.location_on,
-                         size: 16,
-                         color: Colors.grey.shade600,
-                       ),
-                       SizedBox(width: 4),
-                       Expanded(
-                                                   child: Text(
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Endereço
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
                             vaga.local,
                             style: TextStyle(
                               color: Colors.grey.shade700,
                               fontSize: 14,
                             ),
                           ),
-                       ),
-                     ],
-                   ),
-                   
-                   SizedBox(height: 12),
-                   
-                   // Data e horário
-                   Row(
-                     children: [
-                       // Data
-                       Expanded(
-                         child: Row(
-                           children: [
-                             Icon(
-                               Icons.calendar_today,
-                               size: 16,
-                               color: Colors.blue.shade600,
-                             ),
-                             SizedBox(width: 6),
-                             Expanded(
-                                                               child: Text(
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Data e horário
+                    Row(
+                      children: [
+                        // Data
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.blue.shade600,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
                                   vaga.dia,
-                                  style: TextStyle(
-                                    color: Colors.black,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
                                   ),
                                 ),
-                             ),
-                           ],
-                         ),
-                       ),
-                       
-                       // Horário
-                       Expanded(
-                         child: Row(
-                           children: [
-                             Icon(
-                               Icons.access_time,
-                               size: 16,
-                               color: Colors.orange.shade600,
-                             ),
-                             SizedBox(width: 6),
-                                                           Text(
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // Horário
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.orange.shade600,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
                                 vaga.hora,
-                                style: TextStyle(
-                                  color: Colors.black,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
                                 ),
                               ),
-                           ],
-                         ),
-                       ),
-                     ],
-                   ),
-                   
-                   SizedBox(height: 16),
-                   
-                   // Botão Ver Detalhes
-                   SizedBox(
-                     width: double.infinity,
-                     child: ElevatedButton(
-                       onPressed: () => _mostrarDetalhesVaga(vaga),
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: Colors.blue.shade600,
-                         foregroundColor: Colors.white,
-                         padding: EdgeInsets.symmetric(vertical: 12),
-                         shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(8),
-                         ),
-                       ),
-                       child: Text(
-                         'Ver Detalhes',
-                         style: TextStyle(
-                           fontWeight: FontWeight.bold,
-                           fontSize: 16,
-                         ),
-                       ),
-                     ),
-                   ),
-                 ],
-               ),
-             ),
-           );
-                   },
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Botão Ver Detalhes
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _mostrarDetalhesVaga(vaga),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Ver Detalhes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       );
     } catch (e) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Vagas Disponíveis'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red),
-              SizedBox(height: 16),
-              Text(
-                'Erro ao carregar página',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Erro: $e',
-                style: TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isLoading = true;
-                    _error = null;
-                  });
-                  _carregarVagas();
-                },
-                child: Text('Tentar Novamente'),
-              ),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              'Erro ao carregar página',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Erro: $e',
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _error = null;
+                });
+                _carregarVagas();
+              },
+              child: const Text('Tentar Novamente'),
+            ),
+          ],
         ),
       );
     }

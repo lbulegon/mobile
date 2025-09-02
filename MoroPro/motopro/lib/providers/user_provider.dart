@@ -18,17 +18,39 @@ class UserProvider extends ChangeNotifier {
     required String nome,
     required String email,
   }) {
+    print('👤 [UserProvider] Definindo dados do usuário...');
+    print('🆔 [UserProvider] ID: $id');
+    print('📛 [UserProvider] Nome: $nome');
+    print('📧 [UserProvider] Email: $email');
+    
     _id = id;
     _nome = nome;
     _email = email;
+    
+    print('✅ [UserProvider] Dados definidos, notificando listeners...');
     notifyListeners();
+    print('🔔 [UserProvider] Listeners notificados');
   }
 
   /// Limpa dados do usuário (logout)
   void clearUserData() {
+    print('🗑️ [UserProvider] Limpando dados do usuário...');
+    print('🆔 [UserProvider] ID anterior: $_id');
+    print('📛 [UserProvider] Nome anterior: $_nome');
+    print('📧 [UserProvider] Email anterior: $_email');
+    
     _id = null;
     _nome = null;
     _email = null;
+    
+    print('✅ [UserProvider] Dados limpos, notificando listeners...');
     notifyListeners();
+    print('🔔 [UserProvider] Listeners notificados');
+  }
+
+  @override
+  void dispose() {
+    print('🗑️ [UserProvider] dispose chamado');
+    super.dispose();
   }
 }

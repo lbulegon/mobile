@@ -3,140 +3,85 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/utils/app_config.dart';
+import 'package:flutter/foundation.dart';
 
 class DioClient {
-  DioClient._();
-  static final DioClient _i = DioClient._();
-  static Dio get dio => _i._build();
+  static late Dio _dio;
 
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: AppConfig.baseUrl, // host puro
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
-    headers: {'Content-Type': 'application/json'},
-  ));
-
-  bool _isRefreshing = false;
-  final List<_Pending> _queue = [];
-
-  Dio _build() {
-    _dio.interceptors.clear();
-    _dio.interceptors.add(InterceptorsWrapper(
-                          onRequest: (opt, h) async {
-                      print('🔑 DioClient: Requisição para ${opt.uri}');
-                      final t = await LocalStorage.getAccessToken();
-                      if (t != null && t.isNotEmpty) {
-                        opt.headers['Authorization'] = 'Bearer $t';
-                        print('🔑 DioClient: Token adicionado ao header');
-                      } else {
-                        print('🔑 DioClient: Sem token para adicionar');
-                      }
-                      h.next(opt);
-      },
-      onResponse: (res, h) {
-        print('🔑 DioClient: Resposta ${res.requestOptions.method} ${res.requestOptions.uri} -> ${res.statusCode}');
-        h.next(res);
-      },
-      onError: (e, h) async {
-        final is401 = e.response?.statusCode == 401;
-        final retried = e.requestOptions.extra['__retried__'] == true;
-        if (is401 && !retried) {
-          final completer = Completer<Response>();
-          _queue.add(_Pending(e.requestOptions, completer));
-          if (!_isRefreshing) {
-            _isRefreshing = true;
-            try {
-              await _refreshToken();
-              final newAccess = await LocalStorage.getAccessToken();
-              for (final p in _queue) {
-                final ro = p.req;
-                ro.extra['__retried__'] = true;
-                ro.headers = Map.of(ro.headers);
-                if (newAccess != null && newAccess.isNotEmpty) {
-                  ro.headers['Authorization'] = 'Bearer $newAccess';
-                } else {
-                  ro.headers.remove('Authorization');
-                }
-                try {
-                  final resp = await _dio.fetch(ro);
-                  p.complete.complete(resp);
-                } catch (err) {
-                  p.complete.completeError(err);
-                }
-              }
-            } catch (_) {
-              await LocalStorage.clearAll();
-              for (final p in _queue) {
-                p.complete.completeError(DioException(
-                  requestOptions: p.req,
-                  type: DioExceptionType.badResponse,
-                  response: Response(
-                    requestOptions: p.req,
-                    statusCode: 401,
-                    data: {'detail': 'token_expired_or_invalid'},
-                  ),
-                ));
-              }
-            } finally {
-              _queue.clear();
-              _isRefreshing = false;
-            }
-          }
-          try {
-            final r = await completer.future;
-            return h.resolve(r);
-          } catch (err) {
-            return h.reject(err is DioException ? err : e);
-          }
-        }
-        h.next(e);
-      },
-    ));
+  static Dio get dio {
+    if (_dio == null) {
+      print('🔧 [DioClient] Inicializando cliente Dio...');
+      _initializeDio();
+    }
     return _dio;
   }
 
-  Future<void> _refreshToken() async {
-    print('🔑 DioClient: Tentando refresh token...');
-    final refresh = await LocalStorage.getRefreshToken();
-    if (refresh == null || refresh.isEmpty) {
-      print('🔑 DioClient: Sem refresh token disponível');
-      throw Exception('Sem refresh token');
-    }
+  static void _initializeDio() {
+    print('⚙️ [DioClient] Configurando cliente Dio...');
     
-    print('🔑 DioClient: Refresh token encontrado, fazendo requisição...');
-    try {
-      final resp = await _dio.post(
-        AppConfig.refreshToken,
-        data: {'refresh': refresh},
-        options: Options(headers: {'Authorization': null}),
-      );
-      
-      print('🔑 DioClient: Refresh response status: ${resp.statusCode}');
-      print('🔑 DioClient: Refresh response data: ${resp.data}');
-      
-      final newAccess = resp.data['access'] ?? resp.data['access_token'];
-      final newRefresh = resp.data['refresh'] ?? resp.data['refresh_token'];
-      
-      if (newAccess == null || (newAccess is String && newAccess.isEmpty)) {
-        print('🔑 DioClient: Refresh não retornou access token');
-        throw Exception('Refresh não retornou access token');
-      }
-      
-      print('🔑 DioClient: Salvando novos tokens...');
-      await LocalStorage.setTokensIfPresent(
-        access: newAccess is String ? newAccess : null,
-        refresh: newRefresh is String ? newRefresh : null,
-      );
-      print('🔑 DioClient: Tokens salvos com sucesso');
-    } catch (e) {
-      print('🔑 DioClient: Erro no refresh: $e');
-      rethrow;
-    }
-  }
-}
+    _dio = Dio(BaseOptions(
+      baseUrl: 'https://motopro-development.up.railway.app',
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ));
 
-class _Pending {
-  final RequestOptions req;
-  final Completer<Response> complete;
-  _Pending(this.req, this.complete);
+    // Adicionar interceptor para token
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          print('📤 [DioClient] Requisição para ${options.uri}');
+          print('🔑 [DioClient] Token adicionado ao header');
+          
+          final token = await LocalStorage.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+            print('✅ [DioClient] Token Bearer adicionado: ${token.substring(0, 20)}...');
+          } else {
+            print('⚠️ [DioClient] Token não encontrado, requisição sem autenticação');
+          }
+          
+          print('📋 [DioClient] Headers: ${options.headers}');
+          if (options.data != null) {
+            print('📄 [DioClient] Body: ${options.data}');
+          }
+          
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          print('📥 [DioClient] Resposta ${response.requestOptions.method} ${response.requestOptions.uri} -> ${response.statusCode}');
+          print('📊 [DioClient] Tamanho da resposta: ${response.data?.toString().length ?? 0} caracteres');
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          print('❌ [DioClient] Erro na requisição ${error.requestOptions.method} ${error.requestOptions.uri}');
+          print('📊 [DioClient] Status: ${error.response?.statusCode}');
+          print('📄 [DioClient] Dados do erro: ${error.response?.data}');
+          print('💬 [DioClient] Mensagem: ${error.message}');
+          handler.next(error);
+        },
+      ),
+    );
+
+    // Adicionar LogInterceptor em modo debug
+    if (kDebugMode) {
+      print('🐛 [DioClient] Modo debug ativo, adicionando LogInterceptor');
+      _dio.interceptors.add(LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        logPrint: (obj) {
+          print('📡 [DioClient] $obj');
+        },
+      ));
+    }
+
+    print('✅ [DioClient] Cliente Dio configurado com sucesso');
+  }
 }

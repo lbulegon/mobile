@@ -40,14 +40,30 @@ class ApiVagas {
       final response = await DioClient.dio.post(
         AppConfig.candidatar,
         data: {
+          'motoboy_id': motoboyId,
           'vaga_id': vagaId,
         },
       );
 
       print('🔍 DEBUG: Resposta candidatura - Status: ${response.statusCode}');
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
+    } on DioException catch (e) {
       print('🔍 DEBUG: Erro ao candidatar: $e');
+      print('🔍 DEBUG: Status: ${e.response?.statusCode}');
+      print('🔍 DEBUG: Data: ${e.response?.data}');
+      
+      // Tratamento específico para erro 400
+      if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData != null && errorData.toString().contains('pendente_documentacao')) {
+          print('🔍 DEBUG: Motoboy com status pendente_documentacao');
+          throw Exception('Você precisa finalizar a documentação para se candidatar a vagas.');
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      print('🔍 DEBUG: Erro geral ao candidatar: $e');
       return false;
     }
   }

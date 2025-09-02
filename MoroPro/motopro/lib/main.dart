@@ -13,9 +13,14 @@ import 'package:motopro/pages/recuperar_senha_page.dart';
 
 
 void main() async {
+  print('🚀 [MAIN] Iniciando aplicativo MotoPro...');
   WidgetsFlutterBinding.ensureInitialized();
+  print('🔧 [MAIN] WidgetsFlutterBinding inicializado');
+  
   await initializeDateFormatting('pt_BR', null);
+  print('🌍 [MAIN] Formatação de data PT-BR inicializada');
 
+  print('🏗️ [MAIN] Configurando providers...');
   runApp(
     MultiProvider(
       providers: [
@@ -24,6 +29,7 @@ void main() async {
       child: const MyApp(),
     ),
   );
+  print('✅ [MAIN] App iniciado com sucesso!');
 }
 
 class MyApp extends StatelessWidget {
@@ -31,6 +37,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('🎨 [MyApp] Construindo MaterialApp...');
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
@@ -43,6 +50,10 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/pre-cadastro': (context) => const PreCadastroPage(),
         '/recuperar-senha': (context) => const RecuperarSenhaPage(), // NOVA
+      },
+      onGenerateRoute: (settings) {
+        print('🧭 [MyApp] Navegando para: ${settings.name}');
+        return null;
       },
     );
   }

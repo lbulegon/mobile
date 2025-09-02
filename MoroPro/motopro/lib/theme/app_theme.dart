@@ -11,9 +11,11 @@ class AppTheme {
       colorScheme: const ColorScheme.dark().copyWith(
         primary: AppColors.primaryBlue,
         secondary: AppColors.primaryBlueLight,
-       
         surface: AppColors.surface,
         error: AppColors.error,
+        // Adicionar cores para cards
+        cardColor: AppColors.cardColor, // Usar a nova cor específica
+        onCardColor: AppColors.textPrimary,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
@@ -26,6 +28,14 @@ class AppTheme {
         titleLarge: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
       ),
       iconTheme: const IconThemeData(color: AppColors.iconActive),
+      // Adicionar tema para cards
+      cardTheme: CardTheme(
+        color: AppColors.cardColor, // Usar a nova cor específica
+        elevation: 4, // Aumentar elevação para melhor visibilidade
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.buttonPrimary,
