@@ -16,6 +16,11 @@ class LocalStorage {
     await p.setString(_keyRefreshToken, refresh);
   }
 
+  // Alias para setAccessToken para manter compatibilidade
+  static Future<void> saveAccessToken(String access) async {
+    return setAccessToken(access);
+  }
+
   static Future<void> setAccessToken(String access) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_keyAccessToken, access);

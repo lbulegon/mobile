@@ -1,7 +1,7 @@
 //motopro/lib/pages/minhas_vagas_page.dart
 import 'package:flutter/material.dart';
 import 'package:motopro/models/candidatura.dart';
-import 'package:motopro/services/minhas_vagas_service.dart';
+import '../services/minhas_vagas_service.dart';
 import 'package:motopro/pages/operacao_page.dart';
 import 'package:intl/intl.dart';
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopro/models/vagas.dart';
 import 'package:motopro/services/api_vagas.dart';
-import 'package:motopro/services/minhas_vagas_service.dart';
 
 class VagasPage extends StatefulWidget {
   const VagasPage({super.key});
@@ -23,7 +22,7 @@ class _VagasPageState extends State<VagasPage> {
 
   Future<void> _carregarVagas() async {
     print('🔍 DEBUG: _carregarVagas iniciado');
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -33,27 +32,28 @@ class _VagasPageState extends State<VagasPage> {
       print('🔍 DEBUG: Iniciando carregamento de vagas...');
       final vagas = await ApiVagas.getVagasDisponiveis();
       print('🔍 DEBUG: Vagas carregadas com sucesso: ${vagas.length}');
-      
+
       if (!mounted) {
         print('🔍 DEBUG: Widget não está mais montado, abortando setState');
         return;
       }
-      
+
       setState(() {
         print('🔍 DEBUG: Executando setState com ${vagas.length} vagas');
         _vagas = vagas;
         _isLoading = false;
       });
-      
+
       print('🔍 DEBUG: setState concluído');
     } catch (e) {
       print('🔍 DEBUG: Erro na página de vagas: $e');
-      
+
       if (!mounted) {
-        print('🔍 DEBUG: Widget não está mais montado, abortando setState de erro');
+        print(
+            '🔍 DEBUG: Widget não está mais montado, abortando setState de erro');
         return;
       }
-      
+
       setState(() {
         _error = 'Erro ao carregar vagas: $e';
         _isLoading = false;
@@ -67,10 +67,10 @@ class _VagasPageState extends State<VagasPage> {
       if (!success) {
         throw Exception('Falha ao candidatar vaga');
       }
-      
+
       // Fecha o popup
       Navigator.of(context).pop();
-      
+
       // Mostra mensagem de sucesso
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -97,7 +97,8 @@ class _VagasPageState extends State<VagasPage> {
                   ],
                 ),
                 SizedBox(height: 8),
-                Text('🏢 ${vaga.empresa}', style: TextStyle(color: Colors.white)),
+                Text('🏢 ${vaga.empresa}',
+                    style: TextStyle(color: Colors.white)),
                 Text('📅 ${vaga.dia}', style: TextStyle(color: Colors.white)),
                 Text('🕐 ${vaga.hora}', style: TextStyle(color: Colors.white)),
                 SizedBox(height: 8),
@@ -121,18 +122,18 @@ class _VagasPageState extends State<VagasPage> {
           margin: EdgeInsets.all(16),
         ),
       );
-      
+
       // Recarrega as vagas
       await _carregarVagas();
-      
+
       // Mostra mensagem para navegar para Minhas Vagas
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vaga reservada! Toque na aba "Minhas Vagas" para ver suas reservas'),
+          content: Text(
+              'Vaga reservada! Toque na aba "Minhas Vagas" para ver suas reservas'),
           duration: Duration(seconds: 3),
         ),
       );
-      
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -166,16 +167,31 @@ class _VagasPageState extends State<VagasPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                Text('📍 ${vaga.local}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                Text('📍 ${vaga.local}',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
                 const SizedBox(height: 8),
-                Text('📅 ${vaga.dia}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                Text('📅 ${vaga.dia}',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
                 const SizedBox(height: 8),
-                Text('🕐 ${vaga.hora}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                Text('🕐 ${vaga.hora}',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
                 const SizedBox(height: 8),
-                Text('👥 ${vaga.quantidadeDisponivel} vagas disponíveis', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                Text('👥 ${vaga.quantidadeDisponivel} vagas disponíveis',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
                 if (vaga.observacao.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('📝 ${vaga.observacao}', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                  Text('📝 ${vaga.observacao}',
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.bodyLarge?.color)),
                 ],
                 const SizedBox(height: 20),
                 Row(
@@ -206,8 +222,6 @@ class _VagasPageState extends State<VagasPage> {
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -313,9 +327,9 @@ class _VagasPageState extends State<VagasPage> {
                         fontSize: 18,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Endereço
                     Row(
                       children: [
@@ -336,9 +350,9 @@ class _VagasPageState extends State<VagasPage> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Data e horário
                     Row(
                       children: [
@@ -364,7 +378,7 @@ class _VagasPageState extends State<VagasPage> {
                             ],
                           ),
                         ),
-                        
+
                         // Horário
                         Expanded(
                           child: Row(
@@ -387,9 +401,9 @@ class _VagasPageState extends State<VagasPage> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Botão Ver Detalhes
                     SizedBox(
                       width: double.infinity,

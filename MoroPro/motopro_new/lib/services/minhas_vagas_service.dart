@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:motopro/models/candidatura.dart';
 import 'package:motopro/services/network/dio_client.dart';
-import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/utils/app_config.dart';
 
 class MinhasVagasService {
@@ -11,8 +10,7 @@ class MinhasVagasService {
     try {
       debugPrint('[INFO] Buscando minhas vagas...');
 
-      // Usando o endpoint correto: GET /api/v1/motoboy-vaga/minhas-vagas/
-      final url = AppConfig.minhasVagas;
+      final url = AppConfig.minhasVagas; // GET /api/v1/motoboy-vaga/minhas-vagas/
       debugPrint('[GET] $url');
 
       final response = await DioClient.dio.get(
@@ -25,37 +23,79 @@ class MinhasVagasService {
       debugPrint('[RESPONSE] Status: ${response.statusCode}, Data: ${response.data}');
 
       if (response.statusCode == 200) {
-        final responseData = response.data as Map<String, dynamic>;
-        final alocacoes = (responseData['alocacoes'] as List?) ?? [];
-        debugPrint('[INFO] Encontradas ${alocacoes.length} vagas reservadas');
-        
-        // Filtrar apenas vagas a partir da data atual
-        final vagasFiltradas = alocacoes.where((json) {
-          try {
-            final candidatura = Candidatura.fromJson(json);
-            final hoje = DateTime.now();
-            final dataVaga = candidatura.dataVaga;
-            
-            // Comparar apenas a data (ignorar hora)
-            final hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
-            final dataVagaSemHora = DateTime(dataVaga.year, dataVaga.month, dataVaga.day);
-            
-            final isFutura = dataVagaSemHora.isAfter(hojeSemHora) || dataVagaSemHora.isAtSameMomentAs(hojeSemHora);
-            debugPrint('[DEBUG] Vaga ${candidatura.id} - Data: $dataVagaSemHora, Hoje: $hojeSemHora, É futura: $isFutura');
-            
-            return isFutura;
-          } catch (e) {
-            debugPrint('[ERROR] Erro ao processar vaga: $e');
-            return false;
+        final data = response.data;
+
+        // Normalizar a lista de itens independente do formato
+        List<dynamic> items;
+        if (data is List) {
+          items = data;
+          debugPrint('[INFO] Resposta é uma lista com ${items.length} itens');
+        } else if (data is Map<String, dynamic>) {
+          items = (data['alocacoes'] ??
+                  data['results'] ??
+                  data['data'] ??
+                  data['items'] ??
+                  data['vagas'] ??
+                  []) as List<dynamic>;
+          debugPrint('[INFO] Resposta é um mapa. Itens normalizados: ${items.length}');
+        } else {
+          debugPrint('[WARN] Formato de resposta inesperado: ${data.runtimeType}');
+          return [];
+        }
+
+        // Parsear primeiro em objetos de domínio
+        final List<Candidatura> todas;
+        try {
+          todas = items.map((e) => Candidatura.fromJson(e as Map<String, dynamic>)).toList();
+        } catch (e) {
+          debugPrint('[ERROR] Falha ao parsear itens: $e');
+          return [];
+        }
+        debugPrint('[INFO] Total parseado: ${todas.length}');
+
+        // Filtrar apenas vagas futuras ou em andamento
+        final agora = DateTime.now();
+        final candidaturas = todas.where((c) {
+          // Se a data for posterior a hoje, inclui
+          if (c.dataVaga.isAfter(agora)) {
+            debugPrint('[DEBUG] Vaga ${c.id} - Data futura: ${c.dataVaga}');
+            return true;
           }
+          
+          // Se for hoje, verifica o horário
+          if (c.dataVaga.year == agora.year &&
+              c.dataVaga.month == agora.month &&
+              c.dataVaga.day == agora.day) {
+            
+            // Converter tudo para minutos para facilitar a comparação
+            final minutosAtual = agora.hour * 60 + agora.minute;
+            final minutosInicio = c.horaInicio.hour * 60 + c.horaInicio.minute;
+            final minutosFim = c.horaFim.hour * 60 + c.horaFim.minute;
+            
+            // Verifica se o horário atual está dentro do período da vaga
+            // Inclui se já passou do início e ainda não chegou no fim
+            final estaDentroDoHorario = minutosAtual >= minutosInicio && 
+                                      minutosAtual < minutosFim;
+            
+            debugPrint('[DEBUG] Vaga ${c.id} - Hoje ${c.horaInicio.hour}:${c.horaInicio.minute.toString().padLeft(2, '0')}-'
+                     '${c.horaFim.hour}:${c.horaFim.minute.toString().padLeft(2, '0')} | '
+                     'Agora: ${agora.hour}:${agora.minute.toString().padLeft(2, '0')} | '
+                     'Está dentro: $estaDentroDoHorario');
+            
+            return estaDentroDoHorario;
+          }
+          
+          return false;
         }).toList();
-        
-        debugPrint('[INFO] Vagas filtradas (a partir de hoje): ${vagasFiltradas.length}');
-        
+
+        // Caso tudo tenha sido filtrado, retornar ao menos todas para debug visual
+        if (candidaturas.isEmpty && todas.isNotEmpty) {
+          debugPrint('[WARN] Todas as vagas foram filtradas por data. Retornando todas para debug.');
+          candidaturas.addAll(todas);
+        }
+
         // Ordenar por data (mais próximas primeiro)
-        final candidaturas = vagasFiltradas.map((json) => Candidatura.fromJson(json)).toList();
         candidaturas.sort((a, b) => a.dataVaga.compareTo(b.dataVaga));
-        
         return candidaturas;
       }
 

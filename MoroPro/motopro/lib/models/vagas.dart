@@ -55,14 +55,28 @@ class Vaga {
       dataIsoFormatada = '';
     }
 
-    final inicio = json['hora_inicio_padrao']?.toString().substring(0, 5) ?? '';
-    final fim = json['hora_fim_padrao']?.toString().substring(0, 5) ?? '';
+    // Preferir campos formatados vindos da API, com fallback seguro para os padrões
+    final String inicioRaw =
+        (json['hora_inicio_formatada'] ?? json['hora_inicio_padrao'] ?? '')
+            .toString();
+    final String fimRaw =
+        (json['hora_fim_formatada'] ?? json['hora_fim_padrao'] ?? '')
+            .toString();
+    final String inicio = inicioRaw.length >= 5 ? inicioRaw.substring(0, 5) : inicioRaw;
+    final String fim = fimRaw.length >= 5 ? fimRaw.substring(0, 5) : fimRaw;
     final horaFormatada = '$inicio às $fim';
+
+    // Se a API enviar a data já formatada, priorizar para exibição
+    final diaApi = (json['data_formatada'] ?? '').toString().trim();
+    if (diaApi.isNotEmpty) {
+      diaFormatado = diaApi;
+    }
 
     return Vaga(
       id: json['id'] ?? 0,
       empresa: json['estabelecimento_nome'] ?? 'Desconhecido',
-      local: json['estabelecimento_endereco'] ?? 'Endereço não informado',
+      local: (json['local'] ?? json['estabelecimento_endereco'] ?? 'Endereço não informado')
+          .toString(),
       dia: diaFormatado,
       hora: horaFormatada,
       observacao: '',

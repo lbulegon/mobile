@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopro/models/vagas.dart';
 import 'package:motopro/services/api_vagas.dart';
-import 'package:motopro/services/minhas_vagas_service.dart';
 
 class VagasPage extends StatefulWidget {
   const VagasPage({super.key});
@@ -39,42 +38,46 @@ class _VagasPageState extends State<VagasPage> {
     try {
       print('📡 [VagasPage] Chamando ApiVagas.getVagasDisponiveis()...');
       final vagas = await ApiVagas.getVagasDisponiveis();
-      
-      print('✅ [VagasPage] Vagas carregadas com sucesso: ${vagas.length} vagas');
-      
+
+      print(
+          '✅ [VagasPage] Vagas carregadas com sucesso: ${vagas.length} vagas');
+
       setState(() {
         _vagas = vagas;
         _isLoading = false;
       });
-      print('✅ [VagasPage] Estado atualizado: carregando = false, vagas = ${vagas.length}');
-      
+      print(
+          '✅ [VagasPage] Estado atualizado: carregando = false, vagas = ${vagas.length}');
     } catch (e) {
       print('❌ [VagasPage] Erro ao carregar vagas: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
-      print('⚠️ [VagasPage] Estado atualizado: carregando = false, erro = $_error');
+      print(
+          '⚠️ [VagasPage] Estado atualizado: carregando = false, erro = $_error');
     }
   }
 
   Future<void> _candidatarVaga(Vaga vaga) async {
     print('🚀 [VagasPage] Iniciando candidatura para vaga: ${vaga.id}');
-    print('📋 [VagasPage] Detalhes da vaga: ${vaga.empresa} - ${vaga.dia} - ${vaga.hora}');
-    
+    print(
+        '📋 [VagasPage] Detalhes da vaga: ${vaga.empresa} - ${vaga.dia} - ${vaga.hora}');
+
     try {
-      print('📡 [VagasPage] Chamando ApiVagas.candidatarVaga(18, ${vaga.id})...');
+      print(
+          '📡 [VagasPage] Chamando ApiVagas.candidatarVaga(18, ${vaga.id})...');
       final success = await ApiVagas.candidatarVaga(18, vaga.id);
-      
+
       print('✅ [VagasPage] Resposta da API: $success');
-      
+
       if (!success) {
         print('❌ [VagasPage] API retornou false, lançando exceção...');
         throw Exception('Falha ao candidatar vaga');
       }
-      
+
       print('🎉 [VagasPage] Candidatura bem-sucedida!');
-      
+
       // Mostra mensagem de sucesso
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,17 +86,16 @@ class _VagasPageState extends State<VagasPage> {
           duration: Duration(seconds: 3),
         ),
       );
-      
+
       print('🔄 [VagasPage] Recarregando vagas...');
-      
+
       // Recarrega as vagas
       await _carregarVagas();
-      
+
       print('✅ [VagasPage] Processo de candidatura concluído com sucesso!');
-      
     } catch (e) {
       print('❌ [VagasPage] Erro durante candidatura: $e');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erro ao candidatar: $e'),
@@ -105,8 +107,9 @@ class _VagasPageState extends State<VagasPage> {
 
   void _mostrarDetalhesVaga(Vaga vaga) {
     print('🔍 [VagasPage] Mostrando detalhes da vaga: ${vaga.id}');
-    print('📋 [VagasPage] Detalhes: ${vaga.empresa} - ${vaga.dia} - ${vaga.hora}');
-    
+    print(
+        '📋 [VagasPage] Detalhes: ${vaga.empresa} - ${vaga.dia} - ${vaga.hora}');
+
     showDialog(
       context: context,
       builder: (context) => SimpleDialog(
@@ -139,7 +142,8 @@ class _VagasPageState extends State<VagasPage> {
                     Expanded(
                       child: TextButton(
                         onPressed: () {
-                          print('❌ [VagasPage] Botão "Cancelar" pressionado, fechando popup...');
+                          print(
+                              '❌ [VagasPage] Botão "Cancelar" pressionado, fechando popup...');
                           Navigator.of(context).pop();
                         },
                         child: const Text('Cancelar'),
@@ -149,7 +153,8 @@ class _VagasPageState extends State<VagasPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          print('🚀 [VagasPage] Botão "Reservar" pressionado para vaga: ${vaga.id}');
+                          print(
+                              '🚀 [VagasPage] Botão "Reservar" pressionado para vaga: ${vaga.id}');
                           Navigator.of(context).pop();
                           _candidatarVaga(vaga);
                         },
@@ -193,12 +198,12 @@ class _VagasPageState extends State<VagasPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     print('🎨 [VagasPage] Construindo interface...');
-    print('📊 [VagasPage] Estado atual: carregando=$_isLoading, erro=$_error, vagas=${_vagas.length}');
-    
+    print(
+        '📊 [VagasPage] Estado atual: carregando=$_isLoading, erro=$_error, vagas=${_vagas.length}');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vagas Disponíveis'),
@@ -218,7 +223,7 @@ class _VagasPageState extends State<VagasPage> {
 
   Widget _buildBody() {
     print('🏗️ [VagasPage] Construindo corpo da página...');
-    
+
     try {
       if (_isLoading) {
         print('⏳ [VagasPage] Mostrando indicador de carregamento');
@@ -299,8 +304,9 @@ class _VagasPageState extends State<VagasPage> {
           itemCount: _vagas.length,
           itemBuilder: (context, index) {
             final vaga = _vagas[index];
-            print('🏗️ [VagasPage] Construindo card para vaga ${index + 1}/${_vagas.length}: ${vaga.empresa}');
-            
+            print(
+                '🏗️ [VagasPage] Construindo card para vaga ${index + 1}/${_vagas.length}: ${vaga.empresa}');
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -330,12 +336,14 @@ class _VagasPageState extends State<VagasPage> {
                 trailing: IconButton(
                   icon: const Icon(Icons.info_outline),
                   onPressed: () {
-                    print('🔍 [VagasPage] Botão info pressionado para vaga: ${vaga.id}');
+                    print(
+                        '🔍 [VagasPage] Botão info pressionado para vaga: ${vaga.id}');
                     _mostrarDetalhesVaga(vaga);
                   },
                 ),
                 onTap: () {
-                  print('👆 [VagasPage] Vaga ${vaga.id} tocada, mostrando detalhes...');
+                  print(
+                      '👆 [VagasPage] Vaga ${vaga.id} tocada, mostrando detalhes...');
                   _mostrarDetalhesVaga(vaga);
                 },
               ),
