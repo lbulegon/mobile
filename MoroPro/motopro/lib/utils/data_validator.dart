@@ -41,7 +41,7 @@ class DataValidator {
     final hoje = DateTime(agora.year, agora.month, agora.day);
     final dataVagaOnly = DateTime(dataVaga.year, dataVaga.month, dataVaga.day);
     
-    debugPrint('[DataValidator] Analisando vaga: Data=${dataVagaOnly}, Hoje=${hoje}, Hora=${horaInicio.hour}:${horaInicio.minute}-${horaFim.hour}:${horaFim.minute}');
+    // debugPrint('[DataValidator] Analisando vaga: Data=${dataVagaOnly}, Hoje=${hoje}, Hora=${horaInicio.hour}:${horaInicio.minute}-${horaFim.hour}:${horaFim.minute}');
     
     // Se a vaga é de um dia futuro, sempre mostrar
     if (dataVagaOnly.isAfter(hoje)) {
@@ -50,20 +50,20 @@ class DataValidator {
     
     // Se a vaga é de hoje, verificar se ainda não terminou
     if (dataVagaOnly.isAtSameMomentAs(hoje)) {
-      debugPrint('[DataValidator] Vaga é de hoje');
+      // debugPrint('[DataValidator] Vaga é de hoje');
       // Se a vaga termina na madrugada (hora fim < hora início), 
       // considerar que vai até o dia seguinte - SEMPRE mostrar
       if (horaFim.hour < horaInicio.hour) {
-        debugPrint('[DataValidator] Vaga vai até madrugada - SEMPRE mostrar');
+        // debugPrint('[DataValidator] Vaga vai até madrugada - SEMPRE mostrar');
         // Vaga vai até a madrugada do dia seguinte - sempre mostrar
         return true;
       } else {
-        debugPrint('[DataValidator] Vaga normal do mesmo dia - verificar se não terminou');
+        // debugPrint('[DataValidator] Vaga normal do mesmo dia - verificar se não terminou');
         // Vaga normal do mesmo dia - verificar se ainda não terminou
         final agoraTime = DateTime(agora.year, agora.month, agora.day, agora.hour, agora.minute);
         final fimTime = DateTime(dataVaga.year, dataVaga.month, dataVaga.day, horaFim.hour, horaFim.minute);
         final naoTerminou = agoraTime.isBefore(fimTime);
-        debugPrint('[DataValidator] Agora: $agoraTime, Fim: $fimTime, Não terminou: $naoTerminou');
+        // debugPrint('[DataValidator] Agora: $agoraTime, Fim: $fimTime, Não terminou: $naoTerminou');
         return naoTerminou;
       }
     }

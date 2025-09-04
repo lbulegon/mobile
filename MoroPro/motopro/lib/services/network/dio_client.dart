@@ -12,8 +12,8 @@ class DioClient {
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: AppConfig.baseUrl, // host puro
-    connectTimeout: const Duration(seconds: 8), // Reduzido de 15s para 8s
-    receiveTimeout: const Duration(seconds: 10), // Reduzido de 15s para 10s
+    connectTimeout: const Duration(seconds: 15), // Aumentado para resolver problemas de conexão
+    receiveTimeout: const Duration(seconds: 20), // Aumentado para resolver problemas de recebimento
     headers: {'Content-Type': 'application/json'},
   ));
 

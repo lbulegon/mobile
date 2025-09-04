@@ -2,8 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:motopro/models/candidatura.dart';
 import 'package:motopro/services/network/dio_client.dart';
+import 'package:motopro/services/local_storage.dart';
 import 'package:motopro/utils/app_config.dart';
 import 'package:motopro/utils/data_validator.dart';
+import 'package:motopro/services/offline_cache_service.dart';
 
 class MinhasVagasService {
   /// Busca todas as vagas reservadas do motoboy
@@ -13,6 +15,14 @@ class MinhasVagasService {
 
       final url = AppConfig.minhasVagas; // GET /api/v1/motoboy-vaga/minhas-vagas/
       debugPrint('[GET] $url');
+      
+      // Verificar se há token antes de fazer a requisição
+      final token = await LocalStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('[ERROR] Sem token de acesso');
+        return [];
+      }
+      debugPrint('[INFO] Token encontrado, fazendo requisição...');
 
       final response = await DioClient.dio.get(
         url,
@@ -75,6 +85,16 @@ class MinhasVagasService {
 
         // Ordenar por data (mais próximas primeiro)
         candidaturas.sort((a, b) => a.dataVaga.compareTo(b.dataVaga));
+        
+        // Salvar no cache offline para uso futuro
+        try {
+          final vagasParaCache = candidaturas.map((c) => c.toJson()).toList();
+          await OfflineCacheService.saveMinhasVagas(vagasParaCache);
+          debugPrint('[INFO] Dados salvos no cache offline');
+        } catch (cacheError) {
+          debugPrint('[WARN] Erro ao salvar cache offline: $cacheError');
+        }
+        
         return candidaturas;
       }
 
@@ -84,8 +104,34 @@ class MinhasVagasService {
 
     } on DioException catch (e) {
       debugPrint('[ERROR] DioException: ${e.message}');
+      debugPrint('[ERROR] Tipo: ${e.type}');
       debugPrint('[ERROR] Status: ${e.response?.statusCode}');
       debugPrint('[ERROR] Data: ${e.response?.data}');
+      debugPrint('[ERROR] URL: ${e.requestOptions.uri}');
+      
+      // Tentar usar cache offline em caso de erro de conectividade
+      if (e.type == DioExceptionType.connectionError || 
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.unknown) {
+        debugPrint('[INFO] Tentando usar cache offline...');
+        try {
+          final cachedData = await OfflineCacheService.getMinhasVagas();
+          if (cachedData != null && cachedData.isNotEmpty) {
+            debugPrint('[INFO] Usando dados do cache offline: ${cachedData.length} itens');
+            final candidaturas = cachedData.map((e) => Candidatura.fromJson(e)).toList();
+            
+            // Aplicar filtro nas vagas do cache
+            final candidaturasFiltradas = candidaturas.where((c) {
+              return DataValidator.shouldShowVaga(c.dataVaga, c.horaInicio, c.horaFim);
+            }).toList();
+            
+            candidaturasFiltradas.sort((a, b) => a.dataVaga.compareTo(b.dataVaga));
+            return candidaturasFiltradas;
+          }
+        } catch (cacheError) {
+          debugPrint('[ERROR] Erro ao usar cache offline: $cacheError');
+        }
+      }
       
       // Tratamento específico para diferentes tipos de erro
       if (e.response?.statusCode == 404) {
@@ -95,14 +141,29 @@ class MinhasVagasService {
         debugPrint('[INFO] 500 - Retornando lista vazia');
         return [];
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        debugPrint('[ERROR] Timeout de conexão');
+        debugPrint('[ERROR] Timeout de conexão - Verifique sua internet');
         return [];
       } else if (e.type == DioExceptionType.connectionError) {
-        debugPrint('[ERROR] Erro de conexão');
+        debugPrint('[ERROR] Erro de conexão - Verifique sua internet');
+        return [];
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        debugPrint('[ERROR] Timeout de recebimento - Servidor lento');
+        return [];
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        debugPrint('[ERROR] Timeout de envio - Verifique sua internet');
+        return [];
+      } else if (e.type == DioExceptionType.badResponse) {
+        debugPrint('[ERROR] Resposta inválida do servidor');
+        return [];
+      } else if (e.type == DioExceptionType.cancel) {
+        debugPrint('[ERROR] Requisição cancelada');
+        return [];
+      } else if (e.type == DioExceptionType.unknown) {
+        debugPrint('[ERROR] Erro desconhecido - Verifique sua conexão');
         return [];
       }
       
-      debugPrint('[ERROR] Erro desconhecido, retornando lista vazia');
+      debugPrint('[ERROR] Erro não tratado, retornando lista vazia');
       return [];
     } catch (e) {
       debugPrint('[ERROR] Erro geral: $e');
