@@ -32,6 +32,39 @@ class DataValidator {
     return dataVaga.isAtSameMomentAs(dataComparacao) || dataVaga.isAfter(dataComparacao);
   }
 
+  /// Valida se uma vaga deve ser exibida considerando data e horário
+  /// Inclui vagas que se estendem até a madrugada do dia seguinte
+  static bool shouldShowVaga(DateTime dataVaga, DateTime horaInicio, DateTime horaFim) {
+    if (!isValidDate(dataVaga)) return false;
+    
+    final agora = DateTime.now();
+    final hoje = DateTime(agora.year, agora.month, agora.dia);
+    final dataVagaOnly = DateTime(dataVaga.year, dataVaga.month, dataVaga.day);
+    
+    // Se a vaga é de um dia futuro, sempre mostrar
+    if (dataVagaOnly.isAfter(hoje)) {
+      return true;
+    }
+    
+    // Se a vaga é de hoje, verificar se ainda não terminou
+    if (dataVagaOnly.isAtSameMomentAs(hoje)) {
+      // Se a vaga termina na madrugada (hora fim < hora início), 
+      // considerar que vai até o dia seguinte
+      if (horaFim.hour < horaInicio.hour) {
+        // Vaga vai até a madrugada do dia seguinte
+        return true;
+      } else {
+        // Vaga normal do mesmo dia - verificar se ainda não terminou
+        final agoraTime = DateTime(agora.year, agora.month, agora.day, agora.hour, agora.minute);
+        final fimTime = DateTime(dataVaga.year, dataVaga.month, dataVaga.day, horaFim.hour, horaFim.minute);
+        return agoraTime.isBefore(fimTime);
+      }
+    }
+    
+    // Vaga do passado
+    return false;
+  }
+
   /// Valida se uma data está no passado
   static bool isPastDate(DateTime date) {
     if (!isValidDate(date)) return false;

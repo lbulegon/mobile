@@ -29,28 +29,35 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
     super.dispose();
   }
 
-  Future<void> _carregarVagas() async {
-    setState(() {
-      _carregando = true;
-      _erro = null;
-    });
+  Future<void> _carregarVagas({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      setState(() {
+        _carregando = true;
+        _erro = null;
+      });
+    }
 
     try {
-      debugPrint('[MinhasVagasPage] Iniciando carregamento das vagas...');
+      debugPrint('[MinhasVagasPage] Iniciando carregamento das vagas... (refresh: $isRefresh)');
       final vagas = await MinhasVagasService.getMinhasVagas();
       
       debugPrint('[MinhasVagasPage] Vagas carregadas: ${vagas.length}');
       
-      setState(() {
-        _vagas = vagas;
-        _carregando = false;
-      });
+      if (mounted) {
+        setState(() {
+          _vagas = vagas;
+          _carregando = false;
+          _erro = null;
+        });
+      }
     } catch (e) {
       debugPrint('[MinhasVagasPage] Erro ao carregar vagas: $e');
-      setState(() {
-        _erro = 'Erro ao carregar vagas: $e';
-        _carregando = false;
-      });
+      if (mounted) {
+        setState(() {
+          _erro = 'Erro ao carregar vagas: $e';
+          _carregando = false;
+        });
+      }
     }
   }
 
@@ -128,7 +135,7 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _carregarVagas,
+            onPressed: () => _carregarVagas(isRefresh: true),
           ),
         ],
       ),
@@ -146,7 +153,7 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _carregarVagas,
+                        onPressed: () => _carregarVagas(isRefresh: true),
                         child: const Text('Tentar Novamente'),
                       ),
                     ],
@@ -221,7 +228,7 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _carregarVagas,
+                      onRefresh: () => _carregarVagas(isRefresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _vagas.length,

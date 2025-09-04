@@ -54,24 +54,20 @@ class MinhasVagasService {
         }
         debugPrint('[INFO] Total parseado: ${todas.length}');
 
-        // Filtrar vagas a partir de hoje (data atual) e futuras
+        // Filtrar vagas considerando data e horário (inclui vagas que vão até madrugada)
         final candidaturas = todas.where((c) {
           debugPrint('[DEBUG] Analisando vaga ${c.id} - Data: ${c.dataVaga} | Hora: ${c.horaInicio.hour}:${c.horaInicio.minute.toString().padLeft(2, '0')}-${c.horaFim.hour}:${c.horaFim.minute.toString().padLeft(2, '0')}');
           
-          // Validar se a data da vaga é válida
-          if (!DataValidator.isValidDate(c.dataVaga)) {
-            debugPrint('[DEBUG] Vaga ${c.id} - Data inválida: ${c.dataVaga}');
-            return false;
+          // Usar o novo método que considera data e horário
+          final shouldShow = DataValidator.shouldShowVaga(c.dataVaga, c.horaInicio, c.horaFim);
+          
+          if (shouldShow) {
+            debugPrint('[DEBUG] Vaga ${c.id} - Deve ser exibida: ${c.dataVaga}');
+          } else {
+            debugPrint('[DEBUG] Vaga ${c.id} - Não deve ser exibida: ${c.dataVaga}');
           }
           
-          // Verificar se a vaga é futura (hoje ou depois)
-          if (DataValidator.isFutureDate(c.dataVaga)) {
-            debugPrint('[DEBUG] Vaga ${c.id} - Data válida (futura): ${c.dataVaga}');
-            return true;
-          }
-          
-          debugPrint('[DEBUG] Vaga ${c.id} - Data passada: ${c.dataVaga}');
-          return false;
+          return shouldShow;
         }).toList();
 
         // Log do resultado do filtro
