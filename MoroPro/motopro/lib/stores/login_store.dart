@@ -7,9 +7,10 @@ class LoginStore = LoginStoreBase with _$LoginStore;
 
 abstract class LoginStoreBase with Store {
   LoginStoreBase() {
-    autorun((_) {
-      print(email);
-    });
+    // Removido autorun desnecessário para economizar bateria
+    // autorun((_) {
+    //   print(email);
+    // });
   }
 
   @observable

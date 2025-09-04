@@ -12,8 +12,8 @@ class DioClient {
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: AppConfig.baseUrl, // host puro
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
+    connectTimeout: const Duration(seconds: 8), // Reduzido de 15s para 8s
+    receiveTimeout: const Duration(seconds: 10), // Reduzido de 15s para 10s
     headers: {'Content-Type': 'application/json'},
   ));
 
@@ -26,12 +26,12 @@ class DioClient {
     // Adicionar logs completos (somente em modo debug)
     if (kDebugMode) {
       _dio.interceptors.add(LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
+        request: false, // Reduzido para economizar bateria
+        requestHeader: false, // Reduzido para economizar bateria
+        requestBody: false, // Reduzido para economizar bateria
         responseHeader: false,
-        responseBody: true,
-        error: true,
+        responseBody: false, // Reduzido para economizar bateria
+        error: true, // Mantido apenas erros
         logPrint: (o) => debugPrint(o.toString()),
       ));
     }
