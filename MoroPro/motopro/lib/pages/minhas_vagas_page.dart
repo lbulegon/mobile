@@ -62,45 +62,24 @@ class _MinhasVagasPageState extends State<MinhasVagasPage> {
   }
 
   Future<void> _iniciarOperacao(Candidatura candidatura) async {
-    try {
-      debugPrint('[MinhasVagasPage] Iniciando operação para alocação ${candidatura.alocacaoId}');
-      
-      final sucesso = await MinhasVagasService.iniciarOperacao(candidatura.alocacaoId);
-      
-      if (sucesso) {
-        debugPrint('[MinhasVagasPage] Operação iniciada com sucesso');
-        
-        if (!mounted) return;
-        
-        // Navega para a página de operação
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OperacaoPage(operacaoId: candidatura.alocacaoId),
-          ),
-        );
-      } else {
-        debugPrint('[MinhasVagasPage] Falha ao iniciar operação');
-        if (!mounted) return;
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao iniciar operação. Tente novamente.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('[MinhasVagasPage] Erro ao iniciar operação: $e');
-      if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro: $e'),
-          backgroundColor: Colors.red,
+    if (!mounted) return;
+    
+    // Mostra mensagem informativa sobre funcionalidade futura
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          '🚀 Funcionalidade em desenvolvimento!\nEsta funcionalidade será implementada em versões futuras.',
+          style: TextStyle(fontSize: 14),
         ),
-      );
-    }
+        backgroundColor: Colors.orange.shade600,
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   Future<void> _continuarOperacao(Candidatura candidatura) async {

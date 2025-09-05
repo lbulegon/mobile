@@ -5,8 +5,6 @@ import 'package:motopro/services/login_user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:motopro/providers/user_provider.dart';
 import 'package:motopro/services/local_storage.dart';
-import 'package:motopro/utils/app_config.dart';
-import 'package:dio/dio.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -83,50 +81,6 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.pushNamed(context, '/recuperar-senha'); // Tela de OTP
   }
 
-  Future<void> _testarConexao() async {
-    setState(() {
-      _carregando = true;
-      _erro = null;
-    });
-
-    try {
-      final dio = Dio();
-      final response = await dio.get(
-        AppConfig.healthCheck,
-        options: Options(
-          validateStatus: (status) => true,
-          headers: {'Content-Type': 'application/json'},
-        ),
-      );
-
-      if (!mounted) return;
-      setState(() => _carregando = false);
-
-      String mensagem;
-      if (response.statusCode == 200) {
-        mensagem = '✅ Servidor funcionando normalmente';
-      } else {
-        mensagem = '⚠️ Servidor retornou status: ${response.statusCode}';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensagem),
-          backgroundColor: response.statusCode == 200 ? Colors.green : Colors.orange,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _carregando = false);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Erro de conexão: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,11 +147,6 @@ class _LoginPageState extends State<LoginPage> {
                   TextButton(
                     onPressed: _irParaRecuperarSenha,
                     child: const Text('Recuperar senha'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: _testarConexao,
-                    child: const Text('🔧 Testar Conexão com Servidor'),
                   ),
                 ],
               ),

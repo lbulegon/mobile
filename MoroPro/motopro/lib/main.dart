@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
         '/pre-cadastro': (context) => const PreCadastroPage(),
-        '/recuperar-senha': (context) => const RecuperarSenhaPage(), // NOVA
+        '/recuperar-senha': (context) => const RecuperarSenhaPage(),
       },
     );
   }

@@ -1,30 +1,64 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:motopro/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('MoroPro App', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    testWidgets('deve iniciar na tela de splash', (WidgetTester tester) async {
+      await tester.pumpWidget(const MyApp());
+      
+      // Verifica se a tela de splash é exibida inicialmente (antes da navegação)
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      
+      // Aguarda um pouco para ver se ainda está na splash
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('deve navegar para login quando não há token', (WidgetTester tester) async {
+      await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // Aguarda a navegação para login
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Verifica se está na tela de login
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('E-mail'), findsOneWidget);
+      expect(find.text('Senha'), findsOneWidget);
+      expect(find.text('Entrar'), findsOneWidget);
+    });
+
+    testWidgets('deve ter botões de navegação na tela de login', (WidgetTester tester) async {
+      await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
+
+      // Aguarda a navegação para login
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Verifica se os botões de navegação estão presentes
+      expect(find.text('Ainda não tem cadastro? Criar conta'), findsOneWidget);
+      expect(find.text('Recuperar senha'), findsOneWidget);
+    });
+
+    testWidgets('não deve ter botão de teste de conexão', (WidgetTester tester) async {
+      await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
+
+      // Aguarda a navegação para login
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      // Verifica se o botão de teste de conexão foi removido
+      expect(find.text('Testar Conexão com Servidor'), findsNothing);
+      expect(find.text('🔧 Testar Conexão com Servidor'), findsNothing);
+    });
   });
 }

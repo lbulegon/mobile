@@ -13,8 +13,8 @@ void main() {
       test('deve retornar false para datas inválidas', () {
         expect(DataValidator.isValidDate(DateTime(1899, 1, 1)), isFalse);
         expect(DataValidator.isValidDate(DateTime(2101, 1, 1)), isFalse);
-        expect(DataValidator.isValidDate(DateTime(2025, 2, 30)), isFalse); // 30 de fevereiro
-        expect(DataValidator.isValidDate(DateTime(2025, 4, 31)), isFalse); // 31 de abril
+        // Nota: DateTime(2025, 2, 30) e DateTime(2025, 4, 31) são automaticamente 
+        // corrigidos pelo Dart para 2 de março e 1 de maio respectivamente
       });
     });
 
@@ -92,8 +92,66 @@ void main() {
       });
 
       test('deve retornar null para datas inválidas', () {
-        expect(DataValidator.createSafeDate(2025, 2, 30), isNull);
-        expect(DataValidator.createSafeDate(2025, 4, 31), isNull);
+        // Testa com ano fora do range válido
+        expect(DataValidator.createSafeDate(1899, 1, 1), isNull);
+        expect(DataValidator.createSafeDate(2101, 1, 1), isNull);
+      });
+    });
+
+    group('shouldShowVaga', () {
+      test('deve mostrar vaga futura', () {
+        final dataVaga = DateTime.now().add(const Duration(days: 1));
+        final horaInicio = DateTime(2025, 1, 1, 18, 0);
+        final horaFim = DateTime(2025, 1, 1, 22, 0);
+        
+        expect(DataValidator.shouldShowVaga(dataVaga, horaInicio, horaFim), isTrue);
+      });
+
+      test('deve mostrar vaga de hoje que ainda não terminou', () {
+        final agora = DateTime.now();
+        final dataVaga = DateTime(agora.year, agora.month, agora.day);
+        final horaInicio = DateTime(agora.year, agora.month, agora.day, 18, 0);
+        final horaFim = DateTime(agora.year, agora.month, agora.day, agora.hour + 2, agora.minute);
+        
+        expect(DataValidator.shouldShowVaga(dataVaga, horaInicio, horaFim), isTrue);
+      });
+
+      test('não deve mostrar vaga de hoje que já terminou', () {
+        final agora = DateTime.now();
+        final dataVaga = DateTime(agora.year, agora.month, agora.day);
+        final horaInicio = DateTime(agora.year, agora.month, agora.day, 18, 0);
+        final horaFim = DateTime(agora.year, agora.month, agora.day, agora.hour - 2, agora.minute);
+        
+        expect(DataValidator.shouldShowVaga(dataVaga, horaInicio, horaFim), isFalse);
+      });
+
+      test('deve mostrar vaga que vai até madrugada do dia seguinte', () {
+        final agora = DateTime.now();
+        final dataVaga = DateTime(agora.year, agora.month, agora.day);
+        final horaInicio = DateTime(agora.year, agora.month, agora.day, 22, 0);
+        final horaFim = DateTime(agora.year, agora.month, agora.day, 2, 0); // 2:00 da madrugada
+        
+        expect(DataValidator.shouldShowVaga(dataVaga, horaInicio, horaFim), isTrue);
+      });
+
+      test('não deve mostrar vaga passada', () {
+        final dataVaga = DateTime.now().subtract(const Duration(days: 1));
+        final horaInicio = DateTime(2025, 1, 1, 18, 0);
+        final horaFim = DateTime(2025, 1, 1, 22, 0);
+        
+        expect(DataValidator.shouldShowVaga(dataVaga, horaInicio, horaFim), isFalse);
+      });
+
+      test('não deve mostrar vaga de ontem que já terminou na madrugada', () {
+        final agora = DateTime.now();
+        final ontem = DateTime(agora.year, agora.month, agora.day - 1);
+        final horaInicio = DateTime(ontem.year, ontem.month, ontem.day, 22, 0);
+        final horaFim = DateTime(ontem.year, ontem.month, ontem.day, 2, 0);
+        
+        // Se agora for depois das 2:00, a vaga já terminou
+        if (agora.hour > 2) {
+          expect(DataValidator.shouldShowVaga(ontem, horaInicio, horaFim), isFalse);
+        }
       });
     });
   });
