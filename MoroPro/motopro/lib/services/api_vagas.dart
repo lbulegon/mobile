@@ -10,19 +10,26 @@ class ApiVagas {
       final response = await DioClient.dio.get(AppConfig.vagasDisponiveis);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final vagas = data.map((json) => Vaga.fromJson(json)).toList();
+        final dynamic body = response.data;
 
-        // Debug simples - verificar vagas do dia 30
-        print('🔍 DEBUG: ${vagas.length} vagas carregadas');
-        for (int i = 0; i < vagas.length; i++) {
-          final vaga = vagas[i];
-          print(
-              '  Vaga $i: ID=${vaga.id}, Empresa="${vaga.empresa}", Dia="${vaga.dia}"');
-          if (vaga.dia.contains('30')) {
-            print('🎯 VAGA DO DIA 30 ENCONTRADA! ID=${vaga.id}');
-          }
+        List<dynamic> items;
+        if (body is List) {
+          items = body;
+        } else if (body is Map<String, dynamic>) {
+          items = (body['vagas'] ??
+                  body['results'] ??
+                  body['data'] ??
+                  body['items'] ??
+                  body['alocacoes'] ??
+                  []) as List<dynamic>;
+        } else {
+          items = [];
         }
+
+        final vagas = items
+            .where((e) => e is Map<String, dynamic>)
+            .map<Vaga>((e) => Vaga.fromJson(e as Map<String, dynamic>))
+            .toList();
 
         return vagas;
       } else {

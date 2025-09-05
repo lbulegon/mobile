@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopro/models/vagas.dart';
 import 'package:motopro/services/api_vagas.dart';
+import 'package:motopro/services/local_storage.dart';
 
 class VagasPage extends StatefulWidget {
   const VagasPage({super.key});
@@ -65,9 +66,15 @@ class _VagasPageState extends State<VagasPage> {
         '📋 [VagasPage] Detalhes da vaga: ${vaga.empresa} - ${vaga.dia} - ${vaga.hora}');
 
     try {
+      // Obter o ID do motoboy logado
+      final motoboyId = await LocalStorage.getMotoboyId();
+      if (motoboyId == null) {
+        throw Exception('Usuário não logado');
+      }
+      
       print(
-          '📡 [VagasPage] Chamando ApiVagas.candidatarVaga(18, ${vaga.id})...');
-      final success = await ApiVagas.candidatarVaga(18, vaga.id);
+          '📡 [VagasPage] Chamando ApiVagas.candidatarVaga($motoboyId, ${vaga.id})...');
+      final success = await ApiVagas.candidatarVaga(motoboyId, vaga.id);
 
       print('✅ [VagasPage] Resposta da API: $success');
 
